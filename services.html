@@ -193,13 +193,12 @@
    Applied after every scrape via post-process.js
 ───────────────────────────────────────────────────────────── */
 
-/* 1. Button press/active feedback */
+/* 1. Button press/active feedback (subtle, don't fight Framer's hover) */
 button:active,
-a:active,
-[role="button"]:active,
-[data-framer-component-type="PageLink"]:active {
-  transform: scale(0.97) !important;
-  transition: transform 0.12s ease-out !important;
+a[data-framer-component-type="PageLink"]:active,
+[role="button"]:active {
+  transform: scale(0.97);
+  transition: transform 0.12s ease-out;
 }
 
 /* 2. Scroll reveal: initial hidden state + revealed state */
@@ -267,26 +266,41 @@ a:active,
   'use strict'
 
   /* ─────────────────────────────────────────
-     FIX 1: Freeze nav variant classes
-     Prevents Framer's scroll-triggered variant swap
-     (which was changing nav items on scroll)
+     FIX 1: Prevent nav CONTENT variant swap on scroll
+
+     Framer's nav had two variants with different menu items
+     (default vs scrolled). We preserve ONLY the top-level
+     variant class on <nav> so the menu items stay consistent.
+
+     Everything else — background-color transitions,
+     "All Pages" dropdown, button hover states — passes through.
   ───────────────────────────────────────── */
-  function freezeNavigation() {
+  function preserveNavVariant() {
     const navs = document.querySelectorAll('nav')
     navs.forEach(function (nav) {
-      freezeElementClasses(nav)
-      // Freeze any inner element that has a variant class
-      nav.querySelectorAll('[class*="framer-v-"]').forEach(freezeElementClasses)
-    })
-  }
+      const initial = Array.from(nav.classList).filter(function (c) {
+        return /^framer-v-/.test(c)
+      })
+      if (initial.length === 0) return
+      const frozen = new Set(initial)
 
-  function freezeElementClasses(el) {
-    if (!el || !el.className || typeof el.className !== 'string') return
-    const snapshot = el.className
-    const mo = new MutationObserver(function () {
-      if (el.className !== snapshot) el.className = snapshot
+      const mo = new MutationObserver(function () {
+        const current = Array.from(nav.classList).filter(function (c) {
+          return /^framer-v-/.test(c)
+        })
+        const currentSet = new Set(current)
+
+        // Remove any non-frozen variant classes that crept in
+        current.forEach(function (v) {
+          if (!frozen.has(v)) nav.classList.remove(v)
+        })
+        // Restore any frozen variants that got stripped
+        frozen.forEach(function (v) {
+          if (!currentSet.has(v)) nav.classList.add(v)
+        })
+      })
+      mo.observe(nav, { attributes: true, attributeFilter: ['class'] })
     })
-    mo.observe(el, { attributes: true, attributeFilter: ['class'] })
   }
 
   /* ─────────────────────────────────────────
@@ -309,9 +323,6 @@ a:active,
     if (targets.length === 0) return
 
     const viewportH = window.innerHeight
-
-    // Elements already in viewport = show immediately (no hide flash)
-    // Elements below the fold = hide + reveal on scroll
     targets.forEach(function (el) {
       const rect = el.getBoundingClientRect()
       if (rect.top < viewportH * 0.9) {
@@ -338,13 +349,10 @@ a:active,
     })
   }
 
-  /* ─────────────────────────────────────────
-     Boot
-  ───────────────────────────────────────── */
   function init() {
-    // Let Framer's own hydration finish first, then layer our fixes
+    // Let Framer hydrate first, then apply our surgical fixes
     setTimeout(function () {
-      freezeNavigation()
+      preserveNavVariant()
       setupScrollReveals()
     }, 600)
   }
