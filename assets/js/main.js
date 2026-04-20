@@ -1,4 +1,4 @@
-const toggle = document.querySelector('.nav-toggle');
+const toggle = document.querySelector('.nav-burger');
 const links = document.querySelector('.nav-links');
 
 if (toggle && links) {
