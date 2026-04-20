@@ -266,36 +266,13 @@ a[data-framer-component-type="PageLink"]:active,
 (function () {
   'use strict'
 
-  /* ─────────────────────────────────────────
-     FIX 1: Prevent nav CONTENT variant swap on scroll
-  ───────────────────────────────────────── */
-  function preserveNavVariant() {
-    const navs = document.querySelectorAll('nav')
-    navs.forEach(function (nav) {
-      const initial = Array.from(nav.classList).filter(function (c) {
-        return /^framer-v-/.test(c)
-      })
-      if (initial.length === 0) return
-      const frozen = new Set(initial)
-      const mo = new MutationObserver(function () {
-        const current = Array.from(nav.classList).filter(function (c) {
-          return /^framer-v-/.test(c)
-        })
-        const currentSet = new Set(current)
-        current.forEach(function (v) {
-          if (!frozen.has(v)) nav.classList.remove(v)
-        })
-        frozen.forEach(function (v) {
-          if (!currentSet.has(v)) nav.classList.add(v)
-        })
-      })
-      mo.observe(nav, { attributes: true, attributeFilter: ['class'] })
-    })
-  }
+  const ACCENT = 'rgb(120, 39, 207)' // Framer's purple accent
 
   /* ─────────────────────────────────────────
-     FIX 2: Card hover lift
-     Live DOM uses data-framer-name="Card" (generic).
+     FIX 1: Card hover — lift + purple title
+     Matches Framer reference behavior:
+     - Card translateY(-10px) with soft shadow
+     - Card title turns purple
   ───────────────────────────────────────── */
   function setupCardHovers() {
     const cards = document.querySelectorAll(
@@ -303,8 +280,24 @@ a[data-framer-component-type="PageLink"]:active,
     )
     cards.forEach(function (card) {
       const r = card.getBoundingClientRect()
-      // Only sizable cards, not icon-sized wrappers
       if (r.width < 150 || r.height < 80) return
+
+      // Find the title element — first heading or the largest text element in the card
+      const title =
+        card.querySelector('h1, h2, h3, h4, h5, h6') ||
+        card.querySelector('[data-framer-name*="Title"]') ||
+        card.querySelector('p')
+
+      // Snapshot title original color (don't wipe Framer's inline style)
+      let origTitleColor = ''
+      let origTitlePrio = ''
+      if (title) {
+        origTitleColor = title.style.getPropertyValue('color')
+        origTitlePrio = title.style.getPropertyPriority('color')
+        title.style.transition =
+          (title.style.transition ? title.style.transition + ', ' : '') +
+          'color 0.28s ease'
+      }
 
       card.style.transition =
         'transform 0.42s cubic-bezier(0.22, 0.68, 0, 1.2), box-shadow 0.42s ease'
@@ -313,18 +306,29 @@ a[data-framer-component-type="PageLink"]:active,
       card.addEventListener('mouseenter', function () {
         card.style.transform = 'translateY(-10px)'
         card.style.boxShadow = '0 18px 48px rgba(0, 0, 0, 0.13)'
+        if (title) title.style.setProperty('color', ACCENT, 'important')
       })
       card.addEventListener('mouseleave', function () {
         card.style.transform = ''
         card.style.boxShadow = ''
+        if (title) {
+          if (origTitleColor) {
+            title.style.setProperty('color', origTitleColor, origTitlePrio)
+          } else {
+            title.style.removeProperty('color')
+          }
+        }
       })
     })
   }
 
   /* ─────────────────────────────────────────
-     FIX 3: Button hover color inversion
-     Detect pill-shaped buttons (border-radius >= 20px, height >= 40px).
-     Invert based on background: dark ↔ transparent, light ↔ dark.
+     FIX 2: Button hover color inversion
+     - Outlined/transparent → fill dark
+     - Dark filled → invert to outlined
+     - Light filled → invert to dark
+     - Small text pill → purple color
+     Snapshots original inline styles so leave restores perfectly.
   ───────────────────────────────────────── */
   function parseRgb(str) {
     const m = str.match(/rgba?\(([^)]+)\)/)
@@ -341,10 +345,9 @@ a[data-framer-component-type="PageLink"]:active,
   }
 
   function isTextOnlyButton(el) {
-    // Small pill, transparent bg — e.g. "Get API Keys"
     const cs = getComputedStyle(el)
     const rect = el.getBoundingClientRect()
-    return rect.height < 36 && cs.backgroundColor.match(/rgba?\([^,]+,[^,]+,[^,]+,\s*0/)
+    return rect.height < 36 && /rgba?\([^,]+,[^,]+,[^,]+,\s*0/.test(cs.backgroundColor)
   }
 
   function setupButtonHovers() {
@@ -366,9 +369,8 @@ a[data-framer-component-type="PageLink"]:active,
       let hoverColor = null
 
       if (textOnly) {
-        // Short text button (like "Get API Keys") — just change color to accent
         hoverBg = null
-        hoverColor = 'rgb(120, 39, 207)' // purple accent
+        hoverColor = ACCENT
       } else if (isTransparent) {
         hoverBg = 'rgb(14, 14, 14)'
         hoverColor = 'rgb(255, 255, 255)'
@@ -382,7 +384,7 @@ a[data-framer-component-type="PageLink"]:active,
         return
       }
 
-      // Snapshot original inline styles BEFORE any mutation so we can restore
+      // Snapshot originals so restore is lossless
       const orig = {
         bg: btn.style.getPropertyValue('background-color'),
         bgPrio: btn.style.getPropertyPriority('background-color'),
@@ -390,27 +392,22 @@ a[data-framer-component-type="PageLink"]:active,
         colorPrio: btn.style.getPropertyPriority('color'),
       }
 
-      // Ensure smooth transition (add, don't replace, existing)
       const origTransition = btn.style.transition || ''
       btn.style.transition =
         (origTransition ? origTransition + ', ' : '') +
         'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.3s cubic-bezier(0.22, 0.68, 0, 1.2)'
 
-      // Find child text elements to re-color (Framer wraps text in nested divs)
       const textNodes = btn.querySelectorAll('p, span, div')
-      const textNodeOrigColors = new Map()
+      const textNodeOrig = new Map()
       textNodes.forEach(function (n) {
-        textNodeOrigColors.set(n, {
+        textNodeOrig.set(n, {
           color: n.style.getPropertyValue('color'),
           prio: n.style.getPropertyPriority('color'),
         })
       })
 
-      // Arrow icon — shift right on hover
       const arrow = btn.querySelector('[data-framer-name="Arrow Icon"], svg')
-      if (arrow) {
-        arrow.style.transition = 'transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2)'
-      }
+      if (arrow) arrow.style.transition = 'transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2)'
 
       btn.addEventListener('mouseenter', function () {
         if (hoverBg) btn.style.setProperty('background-color', hoverBg, 'important')
@@ -422,7 +419,6 @@ a[data-framer-component-type="PageLink"]:active,
         if (arrow) arrow.style.transform = 'translateX(4px)'
       })
       btn.addEventListener('mouseleave', function () {
-        // Restore original inline styles (not removeProperty — that would strip Framer's own)
         if (orig.bg) {
           btn.style.setProperty('background-color', orig.bg, orig.bgPrio)
         } else {
@@ -435,7 +431,7 @@ a[data-framer-component-type="PageLink"]:active,
         }
         btn.style.transform = ''
         textNodes.forEach(function (n) {
-          const o = textNodeOrigColors.get(n)
+          const o = textNodeOrig.get(n)
           if (o && o.color) {
             n.style.setProperty('color', o.color, o.prio)
           } else {
@@ -448,7 +444,7 @@ a[data-framer-component-type="PageLink"]:active,
   }
 
   /* ─────────────────────────────────────────
-     FIX 4: Scroll-reveal animations on cards
+     FIX 3: Scroll-reveal animations
   ───────────────────────────────────────── */
   function setupScrollReveals() {
     const targets = document.querySelectorAll(
@@ -485,9 +481,12 @@ a[data-framer-component-type="PageLink"]:active,
     })
   }
 
+  /* NOTE: preserveNavVariant REMOVED.
+     Framer's native nav scroll behavior (variant swap + white bg)
+     now runs untouched. This matches the reference site. */
+
   function init() {
     setTimeout(function () {
-      preserveNavVariant()
       setupCardHovers()
       setupButtonHovers()
       setupScrollReveals()
