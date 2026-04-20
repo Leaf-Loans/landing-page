@@ -382,12 +382,29 @@ a[data-framer-component-type="PageLink"]:active,
         return
       }
 
-      // Ensure smooth transition
+      // Snapshot original inline styles BEFORE any mutation so we can restore
+      const orig = {
+        bg: btn.style.getPropertyValue('background-color'),
+        bgPrio: btn.style.getPropertyPriority('background-color'),
+        color: btn.style.getPropertyValue('color'),
+        colorPrio: btn.style.getPropertyPriority('color'),
+      }
+
+      // Ensure smooth transition (add, don't replace, existing)
+      const origTransition = btn.style.transition || ''
       btn.style.transition =
+        (origTransition ? origTransition + ', ' : '') +
         'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.3s cubic-bezier(0.22, 0.68, 0, 1.2)'
 
       // Find child text elements to re-color (Framer wraps text in nested divs)
       const textNodes = btn.querySelectorAll('p, span, div')
+      const textNodeOrigColors = new Map()
+      textNodes.forEach(function (n) {
+        textNodeOrigColors.set(n, {
+          color: n.style.getPropertyValue('color'),
+          prio: n.style.getPropertyPriority('color'),
+        })
+      })
 
       // Arrow icon — shift right on hover
       const arrow = btn.querySelector('[data-framer-name="Arrow Icon"], svg')
@@ -405,11 +422,25 @@ a[data-framer-component-type="PageLink"]:active,
         if (arrow) arrow.style.transform = 'translateX(4px)'
       })
       btn.addEventListener('mouseleave', function () {
-        btn.style.removeProperty('background-color')
-        btn.style.removeProperty('color')
+        // Restore original inline styles (not removeProperty — that would strip Framer's own)
+        if (orig.bg) {
+          btn.style.setProperty('background-color', orig.bg, orig.bgPrio)
+        } else {
+          btn.style.removeProperty('background-color')
+        }
+        if (orig.color) {
+          btn.style.setProperty('color', orig.color, orig.colorPrio)
+        } else {
+          btn.style.removeProperty('color')
+        }
         btn.style.transform = ''
         textNodes.forEach(function (n) {
-          n.style.removeProperty('color')
+          const o = textNodeOrigColors.get(n)
+          if (o && o.color) {
+            n.style.setProperty('color', o.color, o.prio)
+          } else {
+            n.style.removeProperty('color')
+          }
         })
         if (arrow) arrow.style.transform = ''
       })
