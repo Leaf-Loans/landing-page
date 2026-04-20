@@ -337,7 +337,14 @@ a[data-framer-component-type="PageLink"]:active,
     const cs = getComputedStyle(el)
     const radius = parseFloat(cs.borderTopLeftRadius) || 0
     const rect = el.getBoundingClientRect()
-    return radius >= 20 && rect.height >= 36 && rect.width >= 70
+    return radius >= 20 && rect.height >= 20 && rect.width >= 60
+  }
+
+  function isTextOnlyButton(el) {
+    // Small pill, transparent bg — e.g. "Get API Keys"
+    const cs = getComputedStyle(el)
+    const rect = el.getBoundingClientRect()
+    return rect.height < 36 && cs.backgroundColor.match(/rgba?\([^,]+,[^,]+,[^,]+,\s*0/)
   }
 
   function setupButtonHovers() {
@@ -353,20 +360,22 @@ a[data-framer-component-type="PageLink"]:active,
       const isTransparent = bg.a < 0.15
       const isDark = bg.a > 0.5 && brightness < 80
       const isLight = bg.a > 0.5 && brightness > 200
+      const textOnly = isTextOnlyButton(btn)
 
       let hoverBg = null
       let hoverColor = null
 
-      if (isTransparent) {
-        // Outlined/transparent → fill dark
+      if (textOnly) {
+        // Short text button (like "Get API Keys") — just change color to accent
+        hoverBg = null
+        hoverColor = 'rgb(120, 39, 207)' // purple accent
+      } else if (isTransparent) {
         hoverBg = 'rgb(14, 14, 14)'
         hoverColor = 'rgb(255, 255, 255)'
       } else if (isDark) {
-        // Dark filled → invert to outlined
         hoverBg = 'rgba(255, 255, 255, 0)'
         hoverColor = 'rgb(14, 14, 14)'
       } else if (isLight) {
-        // Light/white filled → invert to dark
         hoverBg = 'rgb(14, 14, 14)'
         hoverColor = 'rgb(255, 255, 255)'
       } else {
@@ -380,13 +389,20 @@ a[data-framer-component-type="PageLink"]:active,
       // Find child text elements to re-color (Framer wraps text in nested divs)
       const textNodes = btn.querySelectorAll('p, span, div')
 
+      // Arrow icon — shift right on hover
+      const arrow = btn.querySelector('[data-framer-name="Arrow Icon"], svg')
+      if (arrow) {
+        arrow.style.transition = 'transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2)'
+      }
+
       btn.addEventListener('mouseenter', function () {
-        btn.style.setProperty('background-color', hoverBg, 'important')
+        if (hoverBg) btn.style.setProperty('background-color', hoverBg, 'important')
         btn.style.setProperty('color', hoverColor, 'important')
-        btn.style.transform = 'translateY(-2px)'
+        if (!textOnly) btn.style.transform = 'translateY(-2px)'
         textNodes.forEach(function (n) {
           n.style.setProperty('color', hoverColor, 'important')
         })
+        if (arrow) arrow.style.transform = 'translateX(4px)'
       })
       btn.addEventListener('mouseleave', function () {
         btn.style.removeProperty('background-color')
@@ -395,6 +411,7 @@ a[data-framer-component-type="PageLink"]:active,
         textNodes.forEach(function (n) {
           n.style.removeProperty('color')
         })
+        if (arrow) arrow.style.transform = ''
       })
     })
   }
