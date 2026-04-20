@@ -267,13 +267,8 @@ a[data-framer-component-type="PageLink"]:active,
 
   /* ─────────────────────────────────────────
      FIX 1: Prevent nav CONTENT variant swap on scroll
-
-     Framer's nav had two variants with different menu items
-     (default vs scrolled). We preserve ONLY the top-level
-     variant class on <nav> so the menu items stay consistent.
-
-     Everything else — background-color transitions,
-     "All Pages" dropdown, button hover states — passes through.
+     Only preserve the <nav> root variant class.
+     Everything else works normally.
   ───────────────────────────────────────── */
   function preserveNavVariant() {
     const navs = document.querySelectorAll('nav')
@@ -289,12 +284,9 @@ a[data-framer-component-type="PageLink"]:active,
           return /^framer-v-/.test(c)
         })
         const currentSet = new Set(current)
-
-        // Remove any non-frozen variant classes that crept in
         current.forEach(function (v) {
           if (!frozen.has(v)) nav.classList.remove(v)
         })
-        // Restore any frozen variants that got stripped
         frozen.forEach(function (v) {
           if (!currentSet.has(v)) nav.classList.add(v)
         })
@@ -304,22 +296,137 @@ a[data-framer-component-type="PageLink"]:active,
   }
 
   /* ─────────────────────────────────────────
-     FIX 2: Scroll-reveal animations on cards
+     FIX 2: Feature/Service/Process Card hover lift
+     JS-applied inline transform — beats Framer's static inline style.
+  ───────────────────────────────────────── */
+  const CARD_SELECTORS = [
+    '[data-framer-name="Feature Card"]',
+    '[data-framer-name="Service Card"]',
+    '[data-framer-name="Process Card"]',
+    '[data-framer-name="Showcase Card"]',
+    '[data-framer-name="Pricing Card"]',
+    '[data-framer-name="Team Member Card"]',
+    '[data-framer-name="Testimonial Card"]',
+    '[data-framer-name="Blog Card"]',
+  ].join(', ')
+
+  function setupCardHovers() {
+    document.querySelectorAll(CARD_SELECTORS).forEach(function (card) {
+      card.style.transition =
+        'transform 0.42s cubic-bezier(0.22, 0.68, 0, 1.2), box-shadow 0.42s ease'
+      card.style.willChange = 'transform'
+
+      card.addEventListener('mouseenter', function () {
+        card.style.transform = 'translateY(-10px)'
+        card.style.boxShadow = '0 18px 48px rgba(0, 0, 0, 0.13)'
+      })
+      card.addEventListener('mouseleave', function () {
+        card.style.transform = ''
+        card.style.boxShadow = ''
+      })
+    })
+  }
+
+  /* ─────────────────────────────────────────
+     FIX 3: Button hover color inversion
+     Detect current bg (dark/outlined/transparent),
+     swap to inverted colors on hover.
+  ───────────────────────────────────────── */
+  function parseRgb(str) {
+    const m = str.match(/rgba?\(([^)]+)\)/)
+    if (!m) return null
+    const parts = m[1].split(',').map(function (s) {
+      return parseFloat(s.trim())
+    })
+    return {
+      r: parts[0],
+      g: parts[1],
+      b: parts[2],
+      a: parts[3] !== undefined ? parts[3] : 1,
+    }
+  }
+
+  function findButtonSkin(btn) {
+    // Walk through btn and its wrapper children — return the element
+    // whose computed bg/border defines the visible button skin.
+    const candidates = [btn].concat(
+      Array.from(btn.querySelectorAll('*')).slice(0, 6)
+    )
+    for (const el of candidates) {
+      const cs = getComputedStyle(el)
+      const bg = parseRgb(cs.backgroundColor)
+      const border = parseRgb(cs.borderTopColor || cs.borderColor || '')
+      const hasBg = bg && bg.a > 0.05
+      const hasBorder = border && border.a > 0.1 && parseFloat(cs.borderTopWidth) > 0
+      if (hasBg || hasBorder) return el
+    }
+    return btn
+  }
+
+  function setupButtonHovers() {
+    const buttons = document.querySelectorAll(
+      'a[data-framer-component-type="PageLink"]'
+    )
+    buttons.forEach(function (btn) {
+      const skin = findButtonSkin(btn)
+      const cs = getComputedStyle(skin)
+      const bg = parseRgb(cs.backgroundColor)
+      const color = parseRgb(cs.color)
+      if (!bg || !color) return
+
+      const brightness = (bg.r + bg.g + bg.b) / 3
+      const isFilled = bg.a > 0.5 && brightness < 80      // dark filled
+      const isOutlined = bg.a < 0.15                       // transparent / outlined
+      const isLight = bg.a > 0.5 && brightness > 200       // white/light filled
+
+      let hoverBg = null
+      let hoverColor = null
+
+      if (isFilled) {
+        // Dark button → invert to transparent with dark text
+        hoverBg = 'rgba(255, 255, 255, 0)'
+        hoverColor = 'rgb(14, 14, 14)'
+      } else if (isOutlined) {
+        // Transparent / outlined → fill dark
+        hoverBg = 'rgb(14, 14, 14)'
+        hoverColor = 'rgb(255, 255, 255)'
+      } else if (isLight) {
+        // White button → invert to dark
+        hoverBg = 'rgb(14, 14, 14)'
+        hoverColor = 'rgb(255, 255, 255)'
+      } else {
+        // Unknown style — just add a subtle lift
+        btn.addEventListener('mouseenter', function () {
+          btn.style.transition = 'transform 0.25s cubic-bezier(0.22, 0.68, 0, 1.2)'
+          btn.style.transform = 'translateY(-2px)'
+        })
+        btn.addEventListener('mouseleave', function () {
+          btn.style.transform = ''
+        })
+        return
+      }
+
+      skin.style.transition =
+        'background-color 0.28s ease, color 0.28s ease, border-color 0.28s ease, transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2)'
+
+      btn.addEventListener('mouseenter', function () {
+        skin.style.setProperty('background-color', hoverBg, 'important')
+        skin.style.setProperty('color', hoverColor, 'important')
+        btn.style.transform = 'translateY(-2px)'
+      })
+      btn.addEventListener('mouseleave', function () {
+        skin.style.removeProperty('background-color')
+        skin.style.removeProperty('color')
+        btn.style.transform = ''
+      })
+    })
+  }
+
+  /* ─────────────────────────────────────────
+     FIX 4: Scroll-reveal animations on cards
   ───────────────────────────────────────── */
   function setupScrollReveals() {
-    const selectors = [
-      '[data-framer-name="Feature Card"]',
-      '[data-framer-name="Service Card"]',
-      '[data-framer-name="Process Card"]',
-      '[data-framer-name="Showcase Card"]',
-      '[data-framer-name="Pricing Card"]',
-      '[data-framer-name="Team Member Card"]',
-      '[data-framer-name="Testimonial Card"]',
-      '[data-framer-name="FAQ Item"]',
-      '[data-framer-name="Blog Card"]',
-    ].join(', ')
-
-    const targets = document.querySelectorAll(selectors)
+    const targets = document.querySelectorAll(CARD_SELECTORS + ', [data-framer-name="FAQ Item"]')
     if (targets.length === 0) return
 
     const viewportH = window.innerHeight
@@ -350,9 +457,10 @@ a[data-framer-component-type="PageLink"]:active,
   }
 
   function init() {
-    // Let Framer hydrate first, then apply our surgical fixes
     setTimeout(function () {
       preserveNavVariant()
+      setupCardHovers()
+      setupButtonHovers()
       setupScrollReveals()
     }, 600)
   }
