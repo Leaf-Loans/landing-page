@@ -267,8 +267,6 @@ a[data-framer-component-type="PageLink"]:active,
 
   /* ─────────────────────────────────────────
      FIX 1: Prevent nav CONTENT variant swap on scroll
-     Only preserve the <nav> root variant class.
-     Everything else works normally.
   ───────────────────────────────────────── */
   function preserveNavVariant() {
     const navs = document.querySelectorAll('nav')
@@ -278,7 +276,6 @@ a[data-framer-component-type="PageLink"]:active,
       })
       if (initial.length === 0) return
       const frozen = new Set(initial)
-
       const mo = new MutationObserver(function () {
         const current = Array.from(nav.classList).filter(function (c) {
           return /^framer-v-/.test(c)
@@ -296,22 +293,18 @@ a[data-framer-component-type="PageLink"]:active,
   }
 
   /* ─────────────────────────────────────────
-     FIX 2: Feature/Service/Process Card hover lift
-     JS-applied inline transform — beats Framer's static inline style.
+     FIX 2: Card hover lift
+     Live DOM uses data-framer-name="Card" (generic).
   ───────────────────────────────────────── */
-  const CARD_SELECTORS = [
-    '[data-framer-name="Feature Card"]',
-    '[data-framer-name="Service Card"]',
-    '[data-framer-name="Process Card"]',
-    '[data-framer-name="Showcase Card"]',
-    '[data-framer-name="Pricing Card"]',
-    '[data-framer-name="Team Member Card"]',
-    '[data-framer-name="Testimonial Card"]',
-    '[data-framer-name="Blog Card"]',
-  ].join(', ')
-
   function setupCardHovers() {
-    document.querySelectorAll(CARD_SELECTORS).forEach(function (card) {
+    const cards = document.querySelectorAll(
+      '[data-framer-name="Card"], [data-framer-name$="Card"]'
+    )
+    cards.forEach(function (card) {
+      const r = card.getBoundingClientRect()
+      // Only sizable cards, not icon-sized wrappers
+      if (r.width < 150 || r.height < 80) return
+
       card.style.transition =
         'transform 0.42s cubic-bezier(0.22, 0.68, 0, 1.2), box-shadow 0.42s ease'
       card.style.willChange = 'transform'
@@ -329,95 +322,78 @@ a[data-framer-component-type="PageLink"]:active,
 
   /* ─────────────────────────────────────────
      FIX 3: Button hover color inversion
-     Detect current bg (dark/outlined/transparent),
-     swap to inverted colors on hover.
+     Detect pill-shaped buttons (border-radius >= 20px, height >= 40px).
+     Invert based on background: dark ↔ transparent, light ↔ dark.
   ───────────────────────────────────────── */
   function parseRgb(str) {
     const m = str.match(/rgba?\(([^)]+)\)/)
     if (!m) return null
-    const parts = m[1].split(',').map(function (s) {
-      return parseFloat(s.trim())
-    })
-    return {
-      r: parts[0],
-      g: parts[1],
-      b: parts[2],
-      a: parts[3] !== undefined ? parts[3] : 1,
-    }
+    const p = m[1].split(',').map(function (s) { return parseFloat(s.trim()) })
+    return { r: p[0], g: p[1], b: p[2], a: p[3] !== undefined ? p[3] : 1 }
   }
 
-  function findButtonSkin(btn) {
-    // Walk through btn and its wrapper children — return the element
-    // whose computed bg/border defines the visible button skin.
-    const candidates = [btn].concat(
-      Array.from(btn.querySelectorAll('*')).slice(0, 6)
-    )
-    for (const el of candidates) {
-      const cs = getComputedStyle(el)
-      const bg = parseRgb(cs.backgroundColor)
-      const border = parseRgb(cs.borderTopColor || cs.borderColor || '')
-      const hasBg = bg && bg.a > 0.05
-      const hasBorder = border && border.a > 0.1 && parseFloat(cs.borderTopWidth) > 0
-      if (hasBg || hasBorder) return el
-    }
-    return btn
+  function isPillButton(el) {
+    const cs = getComputedStyle(el)
+    const radius = parseFloat(cs.borderTopLeftRadius) || 0
+    const rect = el.getBoundingClientRect()
+    return radius >= 20 && rect.height >= 36 && rect.width >= 70
   }
 
   function setupButtonHovers() {
-    const buttons = document.querySelectorAll(
-      'a[data-framer-component-type="PageLink"]'
-    )
-    buttons.forEach(function (btn) {
-      const skin = findButtonSkin(btn)
-      const cs = getComputedStyle(skin)
+    const links = document.querySelectorAll('a[href]')
+    links.forEach(function (btn) {
+      if (!isPillButton(btn)) return
+
+      const cs = getComputedStyle(btn)
       const bg = parseRgb(cs.backgroundColor)
-      const color = parseRgb(cs.color)
-      if (!bg || !color) return
+      if (!bg) return
 
       const brightness = (bg.r + bg.g + bg.b) / 3
-      const isFilled = bg.a > 0.5 && brightness < 80      // dark filled
-      const isOutlined = bg.a < 0.15                       // transparent / outlined
-      const isLight = bg.a > 0.5 && brightness > 200       // white/light filled
+      const isTransparent = bg.a < 0.15
+      const isDark = bg.a > 0.5 && brightness < 80
+      const isLight = bg.a > 0.5 && brightness > 200
 
       let hoverBg = null
       let hoverColor = null
 
-      if (isFilled) {
-        // Dark button → invert to transparent with dark text
-        hoverBg = 'rgba(255, 255, 255, 0)'
-        hoverColor = 'rgb(14, 14, 14)'
-      } else if (isOutlined) {
-        // Transparent / outlined → fill dark
+      if (isTransparent) {
+        // Outlined/transparent → fill dark
         hoverBg = 'rgb(14, 14, 14)'
         hoverColor = 'rgb(255, 255, 255)'
+      } else if (isDark) {
+        // Dark filled → invert to outlined
+        hoverBg = 'rgba(255, 255, 255, 0)'
+        hoverColor = 'rgb(14, 14, 14)'
       } else if (isLight) {
-        // White button → invert to dark
+        // Light/white filled → invert to dark
         hoverBg = 'rgb(14, 14, 14)'
         hoverColor = 'rgb(255, 255, 255)'
       } else {
-        // Unknown style — just add a subtle lift
-        btn.addEventListener('mouseenter', function () {
-          btn.style.transition = 'transform 0.25s cubic-bezier(0.22, 0.68, 0, 1.2)'
-          btn.style.transform = 'translateY(-2px)'
-        })
-        btn.addEventListener('mouseleave', function () {
-          btn.style.transform = ''
-        })
         return
       }
 
-      skin.style.transition =
-        'background-color 0.28s ease, color 0.28s ease, border-color 0.28s ease, transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2)'
+      // Ensure smooth transition
+      btn.style.transition =
+        'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.3s cubic-bezier(0.22, 0.68, 0, 1.2)'
+
+      // Find child text elements to re-color (Framer wraps text in nested divs)
+      const textNodes = btn.querySelectorAll('p, span, div')
 
       btn.addEventListener('mouseenter', function () {
-        skin.style.setProperty('background-color', hoverBg, 'important')
-        skin.style.setProperty('color', hoverColor, 'important')
+        btn.style.setProperty('background-color', hoverBg, 'important')
+        btn.style.setProperty('color', hoverColor, 'important')
         btn.style.transform = 'translateY(-2px)'
+        textNodes.forEach(function (n) {
+          n.style.setProperty('color', hoverColor, 'important')
+        })
       })
       btn.addEventListener('mouseleave', function () {
-        skin.style.removeProperty('background-color')
-        skin.style.removeProperty('color')
+        btn.style.removeProperty('background-color')
+        btn.style.removeProperty('color')
         btn.style.transform = ''
+        textNodes.forEach(function (n) {
+          n.style.removeProperty('color')
+        })
       })
     })
   }
@@ -426,13 +402,16 @@ a[data-framer-component-type="PageLink"]:active,
      FIX 4: Scroll-reveal animations on cards
   ───────────────────────────────────────── */
   function setupScrollReveals() {
-    const targets = document.querySelectorAll(CARD_SELECTORS + ', [data-framer-name="FAQ Item"]')
+    const targets = document.querySelectorAll(
+      '[data-framer-name="Card"], [data-framer-name$="Card"], [data-framer-name="FAQ Item"]'
+    )
     if (targets.length === 0) return
 
     const viewportH = window.innerHeight
     targets.forEach(function (el) {
-      const rect = el.getBoundingClientRect()
-      if (rect.top < viewportH * 0.9) {
+      const r = el.getBoundingClientRect()
+      if (r.width < 150 || r.height < 80) return
+      if (r.top < viewportH * 0.9) {
         el.classList.add('ll-reveal', 'll-in-view')
       } else {
         el.classList.add('ll-reveal')
@@ -450,9 +429,10 @@ a[data-framer-component-type="PageLink"]:active,
       },
       { threshold: 0.12, rootMargin: '-40px 0px' }
     )
-
     targets.forEach(function (el) {
-      if (!el.classList.contains('ll-in-view')) observer.observe(el)
+      if (el.classList.contains('ll-reveal') && !el.classList.contains('ll-in-view')) {
+        observer.observe(el)
+      }
     })
   }
 
@@ -462,7 +442,7 @@ a[data-framer-component-type="PageLink"]:active,
       setupCardHovers()
       setupButtonHovers()
       setupScrollReveals()
-    }, 600)
+    }, 800)
   }
 
   if (document.readyState === 'loading') {
