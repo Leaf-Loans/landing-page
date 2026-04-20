@@ -1,0 +1,2 @@
+import{o}from"_assets/877e84f83e_chunk-GUM4HW5D.mjs.js";import{i as r}from"_assets/62483fb42f_chunk-LFNVRLTB.mjs.js";import{_ as t}from"_assets/f5d619bc00_chunk-C3XFWB5D.mjs.js";function s(){return!0}function m(){return o.isOn("enableCrdtForNewProjects")}function u(){return t.isDevelopment&&!r.isE2E&&!r.isAutomation&&!r.isTest}export{s as a,m as b,u as c};
+//# sourceMappingURL=_assets/e8a683cb23_chunk-JTQSRRYI.mjs.js.map

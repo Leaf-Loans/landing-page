@@ -1,0 +1,2 @@
+import{f as t}from"_assets/8601d14914_chunk-PC3BUEWR.mjs.js";import{a as e}from"_assets/0daa564123_chunk-67IDBBKJ.mjs.js";import{a as f}from"_assets/ea1cce4797_chunk-JB2N3EQZ.mjs.js";import{e as s}from"_assets/a3d9eb7c95_chunk-AHQIRSXG.mjs.js";var r=s(f(),1);function v(n,m,o=[]){r.default.useEffect(()=>{e()?.isRemountingUI()||t(n,m)},o)}export{v as a};
+//# sourceMappingURL=_assets/b800aa0020_chunk-2BBBTOAF.mjs.js.map

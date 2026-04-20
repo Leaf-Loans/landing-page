@@ -1,0 +1,3 @@
+import{Ca as d,ua as f}from"_assets/f5d619bc00_chunk-C3XFWB5D.mjs.js";function p(e,n){let r="Unknown error";n!==void 0&&(r=n instanceof Error?n.message:""+n),e&&"error"in e&&(r=e.error);let i=s(e),t=/^Unable to resolve specifier '(?<specifier>[^']*)'/u.exec(r);return t?.groups?.specifier&&(r=`Unable to resolve '${t.groups.specifier}'
+You may need to reload your project`,i=void 0),{message:r,title:i}}var o="Error";function s(e){if(!e)return o;let{identifier:n,file:r,name:i}=e,t=d(n);return u(t,r,i)}function u(e,n,r){return f(e)?e.type==="codeFile"?`Error in ${a(n)}`:r?`Error in ${r}`:o:o}function a(e){return e.startsWith("./")?e.replace("./",""):e}export{p as a};
+//# sourceMappingURL=_assets/d990a9a3cd_chunk-UUDVZILO.mjs.js.map

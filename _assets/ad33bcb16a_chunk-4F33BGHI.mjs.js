@@ -1,0 +1,2 @@
+import{e as o}from"_assets/8929f8a502_chunk-DXEB74DT.mjs.js";import{a as n}from"_assets/0a8b525800_chunk-EEJLKBFC.mjs.js";function i(e){let t=new Date;return t.setDate(t.getDate()+e),o(t,"yyyy-MM-dd")}function s(e){let[t,a,r]=e.split("-").map(Number);return n(t&&a&&r,"day must be a valid yyyy-MM-dd string"),new Date(t,a-1,r)}export{i as a,s as b};
+//# sourceMappingURL=_assets/ad33bcb16a_chunk-4F33BGHI.mjs.js.map
