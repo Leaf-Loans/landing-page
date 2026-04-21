@@ -3,29 +3,40 @@
    Applied after every scrape via post-process.js
 ───────────────────────────────────────────────────────────── */
 
-/* 0a. Show scrolled-variant nav (framer-v-g1fdcd) always; hide the default one.
-   Using the Framer variant class directly since data-ll-* markers were stripped. */
-nav.framer-v-q635xq,
-nav[data-framer-name="Desktop"] {
-  display: none !important;
+/* 0a. Show scrolled-variant nav (framer-v-g1fdcd) on DESKTOP only.
+   On mobile/tablet, Framer renders its own responsive nav variant —
+   we must not trample it with display:flex. */
+@media (min-width: 992px) {
+  nav.framer-v-q635xq,
+  nav[data-framer-name="Desktop"] {
+    display: none !important;
+  }
+  nav.framer-v-g1fdcd,
+  nav[data-framer-name="Desktop White"] {
+    display: flex !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 9999 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    transition: background-color 0.24s ease, box-shadow 0.24s ease;
+  }
+  nav.framer-v-g1fdcd.ll-nav-solid,
+  nav[data-framer-name="Desktop White"].ll-nav-solid {
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06) !important;
+  }
 }
-nav.framer-v-g1fdcd,
-nav[data-framer-name="Desktop White"] {
-  display: flex !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  z-index: 9999 !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
-  transition: background-color 0.24s ease, box-shadow 0.24s ease;
-}
-nav.framer-v-g1fdcd.ll-nav-solid,
-nav[data-framer-name="Desktop White"].ll-nav-solid {
-  background-color: #ffffff !important;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06) !important;
+/* On mobile/tablet, hide the Desktop White variant entirely so Framer's
+   mobile nav (usually a hamburger) gets to render. */
+@media (max-width: 991px) {
+  nav.framer-v-g1fdcd,
+  nav[data-framer-name="Desktop White"] {
+    display: none !important;
+  }
 }
 /* Force logo always visible (override any Framer hover-reveal animation) */
 nav.framer-v-g1fdcd [data-framer-name="Logo"],
@@ -539,4 +550,239 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
 [data-framer-name="Team Member Card"]:hover {
   transform: translateY(-8px);
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MOBILE + WEB OPTIMIZATION PASS
+   Breakpoints:
+   - mobile:  ≤ 575px
+   - tablet:  576–991px
+   - desktop: ≥ 992px
+───────────────────────────────────────────────────────────── */
+
+/* No horizontal scroll anywhere. Common Framer pitfall. */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Smooth scroll (honors prefers-reduced-motion via global media query) */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Only apply hover effects on devices that actually hover.
+   Prevents sticky hover states on mobile Safari / Chrome. */
+@media (hover: none), (pointer: coarse) {
+  [data-framer-name="Feature Card"]:hover,
+  [data-framer-name="Service Card"]:hover,
+  [data-framer-name="Process Card"]:hover,
+  [data-framer-name="Showcase Card"]:hover,
+  [data-framer-name="Pricing Card"]:hover,
+  [data-framer-name="Team Member Card"]:hover {
+    transform: none;
+    box-shadow: initial;
+  }
+  /* Buttons: disable scale-on-press affordance (tap handles feedback) */
+  button:active,
+  a[data-framer-component-type="PageLink"]:active,
+  [role="button"]:active {
+    transform: none;
+  }
+}
+
+/* Drop the hero-image vertical lift on tablet & mobile — on smaller
+   screens the image is stacked below copy, not beside it. */
+@media (max-width: 991px) {
+  [data-framer-name="Hero Section"] [data-framer-name="Image"],
+  [data-framer-name="Hero Section"] [data-framer-name*="Image"],
+  [data-framer-name="Hero Section"] [data-framer-name="Image Wrapper"],
+  [data-framer-name="Hero Wrapper"] [data-framer-name="Image"],
+  [data-framer-name="Hero Wrapper"] [data-framer-name="Image Wrapper"] {
+    transform: none !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+/* Custom footer: compact on small screens */
+@media (max-width: 720px) {
+  #ll-custom-footer {
+    padding: 48px 20px !important;
+  }
+  #ll-custom-footer .ll-foot-logo img {
+    height: 24px;
+  }
+  #ll-custom-footer .ll-foot-tagline {
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  #ll-custom-footer .ll-foot-email {
+    font-size: 15px;
+  }
+  #ll-custom-footer .ll-foot-socials {
+    margin-bottom: 28px;
+  }
+  #ll-custom-footer .ll-foot-copy {
+    font-size: 11.5px;
+    padding: 0 8px;
+  }
+}
+
+/* Custom footer: bigger social buttons on mobile (44×44 tap target) */
+@media (max-width: 520px) {
+  #ll-custom-footer .ll-foot-socials a {
+    width: 44px;
+    height: 44px;
+  }
+  #ll-custom-footer .ll-foot-socials svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Modal: fill more of a small viewport, prevent iOS input zoom */
+@media (max-width: 520px) {
+  #ll-modal-overlay {
+    padding: 12px !important;
+    align-items: flex-end; /* bottom-sheet feel */
+  }
+  #ll-modal-card {
+    padding: 24px 20px 20px !important;
+    max-width: 100% !important;
+    max-height: calc(100vh - 24px) !important;
+    border-radius: 20px 20px 16px 16px !important;
+  }
+  #ll-modal-title {
+    font-size: 20px !important;
+    margin-bottom: 4px !important;
+  }
+  #ll-modal-sub {
+    font-size: 13px !important;
+    margin-bottom: 18px !important;
+  }
+  /* iOS zooms inputs under 16px on focus. Bump to 16px. */
+  .ll-field input,
+  .ll-field select,
+  .ll-field textarea,
+  .ll-dropdown-trigger,
+  .ll-dropdown-item {
+    font-size: 16px !important;
+  }
+  /* Bigger close-button tap target */
+  #ll-modal-close {
+    width: 40px !important;
+    height: 40px !important;
+    top: 10px !important;
+    right: 10px !important;
+  }
+  /* Submit button: full-width block on small screens */
+  #ll-modal-submit {
+    padding: 15px 20px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* Modal: dropdown menu respects smaller viewport */
+@media (max-width: 520px) {
+  .ll-dropdown-menu {
+    max-height: 50vh !important;
+  }
+}
+
+/* Banner CTA: stack primary + secondary buttons on narrow screens */
+@media (max-width: 480px) {
+  [data-framer-name="Banner Section"] [data-framer-name="Buttons Wrapper"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100%;
+  }
+  [data-framer-name="Banner Section"] [data-framer-name="Buttons Wrapper"] > * {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  [data-framer-name="Banner Section"] [data-framer-name="Body & Buttons Wrapper"] {
+    width: 100% !important;
+  }
+}
+
+/* Checkmark strip: wrap and tighten on mobile */
+@media (max-width: 720px) {
+  [data-framer-name="Banner Section"] [data-framer-name="Benefits Wrapper"],
+  [data-framer-name="Banner Section"] [data-framer-name="Points Wrapper"] {
+    flex-wrap: wrap !important;
+    gap: 12px 20px !important;
+  }
+}
+
+/* How It Works — tighten step spacing on mobile */
+@media (max-width: 720px) {
+  [data-framer-name="Progress Wrapper"] {
+    gap: 32px !important;
+  }
+  [data-framer-name="Benefit Wrapper"] [data-framer-name="Title"] {
+    font-size: 18px !important;
+  }
+}
+
+/* Scroll reveal stagger: tighter on mobile so content doesn't feel lazy
+   as users scroll quickly on a phone */
+@media (max-width: 720px) {
+  .ll-reveal {
+    transition-duration: 0.45s, 0.5s !important;
+  }
+}
+
+/* Touch target minimum (44×44) for any icon-only interactive element */
+@media (pointer: coarse) {
+  button[aria-label],
+  a[aria-label] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Banner heading responsive handled at top of file via enforceBannerHeading()
+   JS + the section-scoped @media rule earlier. No further override needed. */
+
+/* Dropdown menu: improve scroll UX on mobile — momentum scroll */
+.ll-dropdown-menu {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Form fields: slightly larger padding on mobile for comfort */
+@media (max-width: 520px) {
+  .ll-field input,
+  .ll-field select,
+  .ll-field textarea,
+  .ll-dropdown-trigger {
+    padding: 13px 14px !important;
+  }
+}
+
+/* Make sure Framer's absolute-positioned decorative backgrounds
+   don't cause horizontal scroll on narrow viewports */
+[data-framer-name="Background"],
+[data-framer-name="Gradients Wrapper"] {
+  max-width: 100vw;
+  overflow: hidden;
+}
+
+/* Respect safe-area-insets on iOS (notch, home indicator) */
+@supports (padding: max(0px)) {
+  #ll-custom-footer {
+    padding-bottom: max(48px, env(safe-area-inset-bottom)) !important;
+  }
+  #ll-modal-overlay {
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Print-friendly baseline (bonus — some VCs print to PDF) */
+@media print {
+  nav, #ll-modal-overlay, .ll-foot-socials { display: none !important; }
+  #ll-custom-footer { background: none !important; color: #000; }
+  body { color: #000; background: #fff; }
+  .ll-reveal { opacity: 1 !important; transform: none !important; }
 }

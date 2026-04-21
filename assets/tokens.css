@@ -1,0 +1,122 @@
+/* ─────────────────────────────────────────────────────────────
+   Leaf Loans — Design Tokens
+   Version 1.0 · 2026-04-21
+   Drop this file into any HTML with:
+     <link rel="stylesheet" href="assets/tokens.css" />
+   All tokens are plain CSS custom properties on :root, so every
+   downstream rule can reference them via var(--ll-*).
+───────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Brand / Accent ────────────────────────────────────── */
+  --ll-accent-500: #7827CF;
+  --ll-accent-400: #8E45D9;
+  --ll-accent-600: #5E1EAC;
+  --ll-accent-50:  rgba(120, 39, 207, 0.08);
+  --ll-accent-100: rgba(120, 39, 207, 0.12);
+
+  /* ── Secondary surfaces ────────────────────────────────── */
+  --ll-lavender: #F5F0FA;
+  --ll-peach:    #FDDAC3;
+  --ll-mint:     #E6F7EE;
+
+  /* ── Semantic ──────────────────────────────────────────── */
+  --ll-success:    #17A663;
+  --ll-success-bg: #E6F7EE;
+  --ll-error:      #C62828;
+  --ll-error-bg:   #FDEEEE;
+  --ll-warn:       #E08A00;
+  --ll-info:       #0099FF;
+
+  /* ── Neutral — dark scale (for dark surfaces) ──────────── */
+  --ll-ink-900: #0C0C0C;
+  --ll-ink-800: #161818;
+  --ll-ink-700: #222222;
+  --ll-ink-500: #444444;
+
+  /* ── Neutral — light scale (for light surfaces) ────────── */
+  --ll-paper:           #FFFFFF;
+  --ll-paper-dim:       #F4F4F2;
+  --ll-paper-dim-hover: #E8E8E6;
+  --ll-hairline:        #E4E4E2;
+  --ll-hairline-soft:   rgba(0, 0, 0, 0.06);
+  --ll-mute:            #9A9A97;
+  --ll-body:            #666666;
+  --ll-text-dim:        #888888;
+
+  /* ── Typography ────────────────────────────────────────── */
+  --ll-font-display: "Manrope", "Manrope Placeholder", "Inter", system-ui, -apple-system, sans-serif;
+  --ll-font-body:    "Inter", "Inter Placeholder", system-ui, -apple-system, sans-serif;
+  --ll-font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --ll-text-xs:   11px;
+  --ll-text-sm:   12.5px;
+  --ll-text-base: 14px;
+  --ll-text-md:   16px;
+  --ll-text-lg:   18px;
+  --ll-text-xl:   22px;
+  --ll-text-2xl:  28px;
+  --ll-text-3xl:  40px;
+  --ll-text-4xl:  56px;
+
+  /* ── Spacing — 8px grid ────────────────────────────────── */
+  --ll-space-2xs: 4px;
+  --ll-space-xs:  8px;
+  --ll-space-sm:  12px;
+  --ll-space-md:  16px;
+  --ll-space-lg:  24px;
+  --ll-space-xl:  32px;
+  --ll-space-2xl: 48px;
+  --ll-space-3xl: 64px;
+  --ll-space-4xl: 96px;
+  --ll-space-5xl: 128px;
+
+  /* ── Radius ────────────────────────────────────────────── */
+  --ll-radius-xs:   4px;
+  --ll-radius-sm:   8px;
+  --ll-radius-md:   10px;
+  --ll-radius-lg:   12px;
+  --ll-radius-xl:   16px;
+  --ll-radius-2xl:  20px;
+  --ll-radius-pill: 50px;
+  --ll-radius-full: 999px;
+
+  /* ── Shadow / Elevation ────────────────────────────────── */
+  --ll-shadow-xs: 0 1px 0 rgba(0, 0, 0, 0.06);
+  --ll-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --ll-shadow-md: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --ll-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.12);
+  --ll-shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.28);
+
+  /* ── Motion ────────────────────────────────────────────── */
+  --ll-ease-standard: cubic-bezier(0.22, 0.68, 0, 1.2);
+  --ll-ease-out:      cubic-bezier(0.4, 0, 0.2, 1);
+  --ll-ease-in:       cubic-bezier(0.4, 0, 1, 1);
+
+  --ll-duration-instant: 120ms;
+  --ll-duration-short:   180ms;
+  --ll-duration-base:    220ms;
+  --ll-duration-medium:  350ms;
+  --ll-duration-long:    650ms;
+  --ll-duration-xl:      700ms;
+
+  /* ── Layout ────────────────────────────────────────────── */
+  --ll-container-max:       1200px;
+  --ll-container-narrow:    720px;
+  --ll-container-narrow-sm: 560px;
+
+  /* ── Breakpoints (for JS reference; CSS uses @media directly) ── */
+  --ll-bp-tablet:  576px;
+  --ll-bp-desktop: 992px;
+  --ll-bp-wide:    1280px;
+}
+
+/* Global prefers-reduced-motion honors every token-based transition. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

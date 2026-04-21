@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude personal config (agents/commands live in ~/.claude; project
+# copies are for convenience, not for committing to a public repo)
+.claude/
