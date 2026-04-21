@@ -284,34 +284,50 @@ a[data-framer-component-type="PageLink"]:active,
 
   /* ─────────────────────────────────────────
      FIX 1: Card hover — lift + purple title
-     SCOPED to the "Why Leaf Loans" section only.
-     Infrastructure cards, CTA cards, etc. stay static.
+     Targets the 6 Why Leaf Loans cards by title match.
+     Non-clickable: hover-only interaction.
   ───────────────────────────────────────── */
-  function findWhySection() {
-    const headings = document.querySelectorAll('h1, h2, h3, h4')
-    for (const h of headings) {
-      if (/why\s+leaf\s+loans/i.test(h.textContent || '')) {
-        let cur = h
-        // Walk up to a container that holds at least 4 cards
-        for (let i = 0; i < 10 && cur.parentElement; i++) {
-          cur = cur.parentElement
-          const cardCount = cur.querySelectorAll(
-            '[data-framer-name="Card"], [data-framer-name$="Card"]'
-          ).length
-          if (cardCount >= 4) return cur
+  const WHY_CARD_TITLES = [
+    'Instant Liquidity',
+    'Trusted Credit Infrastructure',
+    'Real-Time Credit',
+    'Instant AI Approvals',
+    'Integrate Seamlessly',
+    'Fulfill Large Orders',
+  ]
+
+  function findWhyCards() {
+    const cards = new Set()
+    document.querySelectorAll('a').forEach(function (a) {
+      const text = (a.textContent || '').trim()
+      if (text.length > 500) return
+      for (const title of WHY_CARD_TITLES) {
+        if (text.includes(title)) {
+          const box = a.getBoundingClientRect()
+          if (box.width > 250 && box.width < 500 && box.height > 300) {
+            cards.add(a)
+          }
+          break
         }
       }
-    }
-    return null
+    })
+    return [...cards]
   }
 
   function setupCardHovers() {
-    const whySection = findWhySection()
-    if (!whySection) return
-    const cards = whySection.querySelectorAll(
-      '[data-framer-name="Card"], [data-framer-name$="Card"]'
-    )
+    const cards = findWhyCards()
+    if (cards.length === 0) return
     cards.forEach(function (card) {
+      // Non-clickable: strip href, block click events
+      if (card.hasAttribute('href')) {
+        card.setAttribute('data-ll-href-removed', card.getAttribute('href'))
+        card.removeAttribute('href')
+      }
+      card.style.cursor = 'default'
+      card.addEventListener('click', function (e) {
+        e.preventDefault()
+        e.stopPropagation()
+      }, true)
       const r = card.getBoundingClientRect()
       if (r.width < 150 || r.height < 80) return
 
@@ -477,12 +493,11 @@ a[data-framer-component-type="PageLink"]:active,
   }
 
   /* ─────────────────────────────────────────
-     FIX 3: Scroll-reveal animations
+     FIX 3: Scroll-reveal animations (Why Leaf Loans cards only)
+     Infrastructure cards stay static per request.
   ───────────────────────────────────────── */
   function setupScrollReveals() {
-    const targets = document.querySelectorAll(
-      '[data-framer-name="Card"], [data-framer-name$="Card"], [data-framer-name="FAQ Item"]'
-    )
+    const targets = findWhyCards()
     if (targets.length === 0) return
 
     const viewportH = window.innerHeight
