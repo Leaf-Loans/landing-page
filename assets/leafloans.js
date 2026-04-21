@@ -19,18 +19,33 @@
     'book a demo',
     'get started',
     'discover more',
+    'partner with us',
   ]
 
-  const ROLE_OPTIONS = [
+  const USE_CASE_OPTIONS = [
     { v: '', l: 'Select one…' },
-    { v: 'founder', l: 'Founder / CEO' },
-    { v: 'product', l: 'Product / Business' },
-    { v: 'developer', l: 'Developer / Engineering' },
-    { v: 'partnership', l: 'Partnership / BD' },
-    { v: 'investor', l: 'Investor' },
-    { v: 'media', l: 'Media / Press' },
+    { v: 'marketplace', l: 'Embedding credit in our marketplace or platform' },
+    { v: 'nbfc_fintech', l: 'Launching a new lending product (NBFC / fintech)' },
+    { v: 'supply_chain', l: 'Supplier / buyer financing on our supply chain' },
+    { v: 'partnership', l: 'Partnership & distribution' },
+    { v: 'investor', l: 'Investor / strategic conversation' },
     { v: 'other', l: 'Other' },
   ]
+
+  /* Map the CTA text that opened the modal to title/sub/submit strings.
+     Keys are lowercase CTA phrases. Falls back to `default`. */
+  const INTENT_MAP = {
+    'partner with us':      { title: "Let's partner.",        sub: "Tell us what you're building. We'll route you to the right team.", submit: 'Request Partnership' },
+    'book a demo':          { title: 'Book your demo.',       sub: 'Tell us about your use case. We\u2019ll tailor the walkthrough.',  submit: 'Request Demo' },
+    'contact us':           { title: 'Say hello.',            sub: 'Drop us a note \u2014 we\u2019ll get back to you.',                  submit: 'Send message' },
+    'get started':          { title: "Let's get started.",    sub: 'A few details and we\u2019ll set you up.',                           submit: 'Get Started' },
+    'get api keys':         { title: 'Get API access.',       sub: 'Tell us about your integration.',                                    submit: 'Request Access' },
+    'open an account':      { title: 'Open an account.',      sub: 'Tell us a bit about your company.',                                  submit: 'Request Account' },
+    "let's talk to an expert": { title: "Let's talk.",        sub: 'Our team will reach out with a tailored walkthrough.',               submit: 'Connect Me' },
+    'talk to an expert':    { title: "Let's talk.",           sub: 'Our team will reach out with a tailored walkthrough.',               submit: 'Connect Me' },
+    'discover more':        { title: "Let's talk.",           sub: 'Tell us about your use case \u2014 we\u2019ll come prepared.',       submit: 'Get in Touch' },
+    default:                { title: "Let's talk.",           sub: 'Tell us a bit about you. We\u2019ll be in touch.',                   submit: 'Send message' },
+  }
 
   function buildModal() {
     if (document.getElementById('ll-modal-overlay')) return
@@ -38,27 +53,43 @@
     overlay.id = 'll-modal-overlay'
     overlay.innerHTML =
       '<div id="ll-modal-card">' +
-      '<button id="ll-modal-close" aria-label="Close">×</button>' +
+      '<button id="ll-modal-close" aria-label="Close">\u00d7</button>' +
       '<div id="ll-modal-form-wrap">' +
-      '<h2 id="ll-modal-title">Let\'s talk</h2>' +
-      '<p id="ll-modal-sub">Tell us a bit about you. We\'ll reach out within 24 hours.</p>' +
-      '<form id="ll-modal-form">' +
-      '<div class="ll-field"><label for="ll-name">Name</label><input id="ll-name" name="name" type="text" required autocomplete="name" /></div>' +
-      '<div class="ll-field"><label for="ll-email">Email</label><input id="ll-email" name="email" type="email" required autocomplete="email" /></div>' +
-      '<div class="ll-field"><label for="ll-role">Role / Use-case</label><select id="ll-role" name="role" required>' +
-      ROLE_OPTIONS.map(function (o) {
-        return '<option value="' + o.v + '"' + (o.v === '' ? ' disabled selected' : '') + '>' + o.l + '</option>'
-      }).join('') +
-      '</select></div>' +
-      '<button id="ll-modal-submit" type="submit">Connect</button>' +
-      '<div id="ll-modal-error"></div>' +
+      '<h2 id="ll-modal-title">Let\u2019s talk.</h2>' +
+      '<p id="ll-modal-sub">Tell us a bit about you. We\u2019ll be in touch.</p>' +
+      '<form id="ll-modal-form" novalidate>' +
+        '<div class="ll-row">' +
+          '<div class="ll-field"><label for="ll-name">Name</label><input id="ll-name" name="name" type="text" required autocomplete="name" /></div>' +
+          '<div class="ll-field"><label for="ll-email">Work email</label><input id="ll-email" name="email" type="email" required autocomplete="email" placeholder="you@company.com" /></div>' +
+        '</div>' +
+        '<div class="ll-row">' +
+          '<div class="ll-field"><label for="ll-company">Company</label><input id="ll-company" name="company" type="text" required autocomplete="organization" /></div>' +
+          '<div class="ll-field"><label for="ll-role">Role</label><input id="ll-role" name="role" type="text" required placeholder="e.g. Head of Partnerships" /></div>' +
+        '</div>' +
+        '<div class="ll-field"><label for="ll-usecase-trigger">I am exploring Leaf Loans for</label>' +
+        '<div class="ll-dropdown" id="ll-usecase" data-value="">' +
+          '<button type="button" class="ll-dropdown-trigger" id="ll-usecase-trigger" aria-haspopup="listbox" aria-expanded="false">' +
+            '<span class="ll-dropdown-label">Select one\u2026</span>' +
+            '<svg class="ll-dropdown-chevron" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+          '</button>' +
+          '<ul class="ll-dropdown-menu" role="listbox">' +
+          USE_CASE_OPTIONS.filter(function (o) { return o.v !== '' }).map(function (o) {
+            return '<li class="ll-dropdown-item" role="option" data-value="' + o.v + '">' + o.l + '</li>'
+          }).join('') +
+          '</ul>' +
+          '<input type="hidden" name="usecase" />' +
+        '</div></div>' +
+        '<div class="ll-field"><label for="ll-notes">Tell us what you\u2019re looking to build <span class="ll-optional">(optional)</span></label>' +
+        '<textarea id="ll-notes" name="notes" rows="3" maxlength="500" placeholder="A few words about your use case \u2014 we\u2019ll come prepared."></textarea></div>' +
+        '<button id="ll-modal-submit" type="submit">Send message</button>' +
+        '<div id="ll-modal-error" role="alert"></div>' +
       '</form>' +
       '</div>' +
       '<div id="ll-modal-success">' +
-      '<div class="check">✓</div>' +
-      '<h3>Got it.</h3>' +
-      '<p>Thanks! We\'ll reach out within 24 hours.</p>' +
-      '<button id="ll-modal-close-2" class="ll-secondary">Close</button>' +
+        '<div class="check">\u2713</div>' +
+        '<h3>Got it.</h3>' +
+        '<p>A member of our partnership team will reach out within 2 business days. If it\u2019s urgent, email <a href="mailto:connect@leafloans.ai">connect@leafloans.ai</a>.</p>' +
+        '<button id="ll-modal-close-2" class="ll-secondary">Close</button>' +
       '</div>' +
       '</div>'
     document.body.appendChild(overlay)
@@ -75,6 +106,22 @@
         if (formWrap) formWrap.style.display = ''
         const err = document.getElementById('ll-modal-error')
         if (err) err.textContent = ''
+        // Reset the custom dropdown too (form.reset doesn't touch it)
+        const dropdown = document.getElementById('ll-usecase')
+        if (dropdown) {
+          dropdown.dataset.value = ''
+          dropdown.classList.remove('ll-dropdown-open', 'll-dropdown-invalid')
+          const lbl = dropdown.querySelector('.ll-dropdown-label')
+          if (lbl) {
+            lbl.textContent = 'Select one\u2026'
+            lbl.classList.add('ll-dropdown-placeholder')
+          }
+          const hidden = dropdown.querySelector('input[type="hidden"]')
+          if (hidden) hidden.value = ''
+          dropdown.querySelectorAll('.ll-dropdown-item').forEach(function (i) {
+            i.classList.remove('ll-dropdown-selected')
+          })
+        }
       }, 250)
     }
     overlay.querySelector('#ll-modal-close').addEventListener('click', close)
@@ -82,6 +129,54 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && overlay.classList.contains('ll-open')) close()
     })
+
+    // Custom dropdown behavior (replaces native <select> styling)
+    const dd = overlay.querySelector('#ll-usecase')
+    if (dd) {
+      const trigger = dd.querySelector('.ll-dropdown-trigger')
+      const label = dd.querySelector('.ll-dropdown-label')
+      const menu = dd.querySelector('.ll-dropdown-menu')
+      const hidden = dd.querySelector('input[type="hidden"]')
+      const items = Array.from(dd.querySelectorAll('.ll-dropdown-item'))
+
+      function openDD() {
+        dd.classList.add('ll-dropdown-open')
+        trigger.setAttribute('aria-expanded', 'true')
+      }
+      function closeDD() {
+        dd.classList.remove('ll-dropdown-open')
+        trigger.setAttribute('aria-expanded', 'false')
+      }
+      function selectValue(value, text) {
+        dd.dataset.value = value
+        hidden.value = value
+        label.textContent = text
+        label.classList.remove('ll-dropdown-placeholder')
+        dd.classList.remove('ll-dropdown-invalid')
+        items.forEach(function (i) {
+          i.classList.toggle('ll-dropdown-selected', i.dataset.value === value)
+        })
+        closeDD()
+      }
+
+      trigger.addEventListener('click', function (e) {
+        e.stopPropagation()
+        if (dd.classList.contains('ll-dropdown-open')) closeDD(); else openDD()
+      })
+      items.forEach(function (item) {
+        item.addEventListener('click', function () {
+          selectValue(item.dataset.value, item.textContent.trim())
+        })
+      })
+      document.addEventListener('click', function (e) {
+        if (!dd.contains(e.target)) closeDD()
+      })
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && dd.classList.contains('ll-dropdown-open')) closeDD()
+      })
+      // Placeholder styling on first render
+      label.classList.add('ll-dropdown-placeholder')
+    }
 
     const closeBtn2 = overlay.querySelector('#ll-modal-close-2')
     if (closeBtn2) {
@@ -100,13 +195,36 @@
       const submit = document.getElementById('ll-modal-submit')
       const errEl = document.getElementById('ll-modal-error')
       errEl.textContent = ''
+
+      // Required-field validation (native required doesn't cover the
+      // custom dropdown's hidden input). Bail before hitting the network.
+      const dropdown = document.getElementById('ll-usecase')
+      const usecaseVal = dropdown ? dropdown.dataset.value : ''
+      const missing = []
+      if (!form.name.value.trim()) missing.push('name')
+      if (!form.email.value.trim()) missing.push('work email')
+      if (!form.company.value.trim()) missing.push('company')
+      if (!form.role.value.trim()) missing.push('role')
+      if (!usecaseVal) {
+        missing.push('use case')
+        if (dropdown) dropdown.classList.add('ll-dropdown-invalid')
+      }
+      if (missing.length) {
+        errEl.textContent = 'Please fill in: ' + missing.join(', ') + '.'
+        return
+      }
+
       submit.disabled = true
-      submit.textContent = 'Sending…'
+      submit.textContent = 'Sending\u2026'
 
       const payload = {
         name: form.name.value.trim(),
         email: form.email.value.trim(),
-        role: form.role.value,
+        company: form.company.value.trim(),
+        role: form.role.value.trim(),
+        usecase: usecaseVal,
+        usecase_label: (USE_CASE_OPTIONS.find(function (o) { return o.v === usecaseVal }) || {}).l || '',
+        notes: form.notes.value.trim(),
         source: overlay.dataset.source || 'Contact',
         page: window.location.pathname,
         timestamp: new Date().toISOString(),
@@ -134,24 +252,29 @@
         console.error('[LeafLoans] submit failed', err)
       } finally {
         submit.disabled = false
-        submit.textContent = 'Connect'
+        submit.textContent = overlay.dataset.submitLabel || 'Send message'
       }
     })
 
     return overlay
   }
 
+  function resolveIntent(source) {
+    const key = (source || '').trim().toLowerCase().replace(/\s*\u2192\s*$/, '').replace(/\s*->\s*$/, '')
+    return INTENT_MAP[key] || INTENT_MAP.default
+  }
+
   function openModal(source) {
     const overlay = document.getElementById('ll-modal-overlay') || buildModal()
     overlay.dataset.source = source || 'Contact'
-    // Optionally customize title per source
+    const intent = resolveIntent(source)
+    overlay.dataset.submitLabel = intent.submit
     const title = document.getElementById('ll-modal-title')
-    if (title) {
-      if (/api/i.test(source)) title.textContent = 'Get API access'
-      else if (/demo/i.test(source)) title.textContent = 'Book a demo'
-      else if (/account/i.test(source)) title.textContent = 'Open an account'
-      else title.textContent = "Let's talk"
-    }
+    const sub = document.getElementById('ll-modal-sub')
+    const submit = document.getElementById('ll-modal-submit')
+    if (title) title.textContent = intent.title
+    if (sub) sub.textContent = intent.sub
+    if (submit) submit.textContent = intent.submit
     overlay.classList.add('ll-open')
     setTimeout(function () {
       const nameInput = document.getElementById('ll-name')
@@ -272,8 +395,9 @@
       } else if (text === 'about us' || text === 'about') {
         bind(function () {
           scrollToHeading(findSectionByHeadingText([
-            /modern banking for modern companies/i,
-            /modern companies/i,
+            /modern credit infrastructure/i,
+            /credit infrastructure for india/i,
+            /b2b economy/i,
           ]))
         })
       }
@@ -318,6 +442,34 @@
   /* ─────────────────────────────────────────
      Hide "Get API Keys" CTA site-wide
   ───────────────────────────────────────── */
+  /* Force the Banner Section heading onto exactly 2 lines:
+     "Modern credit infrastructure" / "for India's B2B economy."
+     Framer's preset cascade has been beating the CSS override, so we
+     set inline styles directly. Inline wins over any stylesheet rule
+     of equal-or-lower specificity, !important or not. */
+  function enforceBannerHeading() {
+    const section = document.querySelector('section[data-framer-name="Banner Section"]')
+    if (!section) return
+    const heading = section.querySelector('[data-styles-preset="XTknRAdUH"]') ||
+      section.querySelector('.framer-styles-preset-8z6aw4')
+    if (!heading) return
+    const mobile = window.innerWidth < 720
+    const px = mobile ? 28 : 40
+    heading.style.setProperty('font-size', px + 'px', 'important')
+    heading.style.setProperty('line-height', '1.15', 'important')
+    heading.style.setProperty('letter-spacing', '-0.02em', 'important')
+    heading.style.setProperty('white-space', mobile ? 'normal' : 'nowrap', 'important')
+    heading.style.setProperty('--framer-font-size', px + 'px', 'important')
+    // Widen the surrounding wrapper so nowrap has room.
+    const titleWrap = heading.closest('[data-framer-name="Title Wrapper"]')
+    const title = heading.closest('[data-framer-name="Title"]')
+    ;[titleWrap, title].forEach(function (el) {
+      if (!el) return
+      el.style.setProperty('max-width', 'none', 'important')
+      el.style.setProperty('width', '100%', 'important')
+    })
+  }
+
   function hideGetApiKeys() {
     document.querySelectorAll('a, button').forEach(function (el) {
       const text = (el.textContent || '').trim().toLowerCase()
@@ -651,52 +803,129 @@
   }
 
   /* ─────────────────────────────────────────
-     FIX 3: Scroll-reveal animations on major sections and Why Leaf Loans
-     cards. Sections fade + slide up as they enter the viewport.
+     Scroll-reveal: staggered per-component cascade.
+     Rather than fading an entire section as one block (the previous
+     behavior), we hide each meaningful child inside a section (title
+     wrapper, body text, CTA buttons, individual cards, images, etc.),
+     apply a stagger delay based on its DOM order, and cascade them in
+     when the parent section enters the viewport. Above-the-fold
+     sections cascade on load (no "preloaded" flash).
+     Respects prefers-reduced-motion by skipping the whole setup.
   ───────────────────────────────────────── */
-  function setupScrollReveals() {
-    const sectionTargets = Array.from(
-      document.querySelectorAll('[data-framer-name$="Section"]')
-    ).filter(function (el) {
-      const r = el.getBoundingClientRect()
-      return r.height > 120
-    })
+  const REVEAL_CHILD_SEL = [
+    '[data-framer-name="Title Wrapper"]',
+    '[data-framer-name="Description"]',
+    '[data-framer-name="Body"]',
+    '[data-framer-name="Body & Buttons Wrapper"]',
+    '[data-framer-name="Buttons Wrapper"]',
+    '[data-framer-name="CTA Wrapper"]',
+    '[data-framer-name="Benefit Wrapper"]',
+    '[data-framer-name="Feature Card"]',
+    '[data-framer-name="Service Card"]',
+    '[data-framer-name="Process Card"]',
+    '[data-framer-name="Showcase Card"]',
+    '[data-framer-name="Card"]',
+    '[data-framer-name="Image Wrapper"]',
+    '[data-framer-name="Thumbnail"]',
+  ].join(', ')
 
-    const cardTargets = findWhyCards()
-    const seen = new Set()
-    const targets = [...sectionTargets, ...cardTargets].filter(function (el) {
-      if (seen.has(el)) return false
-      seen.add(el)
+  const REVEAL_STAGGER_MS = 80
+  const REVEAL_BASE_DELAY_MS = 40
+
+  function collectRevealTargets(section) {
+    const all = Array.from(section.querySelectorAll(REVEAL_CHILD_SEL))
+    // Keep only top-level reveal targets within the section — exclude
+    // nested ones (e.g. a Body inside a Card). Prevents double-animating.
+    return all.filter(function (el) {
+      let cur = el.parentElement
+      while (cur && cur !== section) {
+        if (cur.matches(REVEAL_CHILD_SEL)) return false
+        cur = cur.parentElement
+      }
       return true
     })
-    if (targets.length === 0) return
+  }
+
+  function setupScrollReveals() {
+    if (typeof IntersectionObserver === 'undefined') return
+
+    const reduced = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced) {
+      document.documentElement.classList.add('ll-anims-ready')
+      return
+    }
+
+    const sections = Array.from(
+      document.querySelectorAll('[data-framer-name$="Section"]')
+    ).filter(function (s) { return s.getBoundingClientRect().height > 120 })
+
+    // Build the target map. Each section → list of top-level children to stagger.
+    // Fallback: if a section has no matching children, animate the whole section.
+    const sectionTargets = new Map()
+    sections.forEach(function (section) {
+      let targets = collectRevealTargets(section)
+      if (targets.length === 0) targets = [section]
+      sectionTargets.set(section, targets)
+      targets.forEach(function (el, idx) {
+        el.classList.add('ll-reveal')
+        el.style.setProperty('--ll-delay',
+          (REVEAL_BASE_DELAY_MS + idx * REVEAL_STAGGER_MS) + 'ms')
+      })
+    })
+
+    // Why Leaf Loans cards (discovered via layout heuristic, not a named section).
+    const whyCards = findWhyCards()
+    whyCards.forEach(function (card, idx) {
+      if (card.classList.contains('ll-reveal')) return
+      card.classList.add('ll-reveal')
+      card.style.setProperty('--ll-delay',
+        (REVEAL_BASE_DELAY_MS + idx * REVEAL_STAGGER_MS) + 'ms')
+    })
+
+    // Flip the body flag so the pre-hide CSS stops suppressing content.
+    document.documentElement.classList.add('ll-anims-ready')
 
     const viewportH = window.innerHeight
-    targets.forEach(function (el) {
-      const r = el.getBoundingClientRect()
-      if (r.width < 150 || r.height < 80) return
-      // Already above the fold → show immediately (no flash)
+    const observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return
+        const section = entry.target
+        const targets = sectionTargets.get(section) || [section]
+        targets.forEach(function (t) { t.classList.add('ll-in-view') })
+        observer.unobserve(section)
+      })
+    }, { threshold: 0.12, rootMargin: '-40px 0px' })
+
+    sections.forEach(function (section) {
+      const r = section.getBoundingClientRect()
+      // Already on screen at load → cascade next frame so the user sees
+      // the reveal happen instead of instant content.
       if (r.top < viewportH * 0.9) {
-        el.classList.add('ll-reveal', 'll-in-view')
+        requestAnimationFrame(function () {
+          const targets = sectionTargets.get(section) || [section]
+          targets.forEach(function (t) { t.classList.add('ll-in-view') })
+        })
       } else {
-        el.classList.add('ll-reveal')
+        observer.observe(section)
       }
     })
 
-    const observer = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('ll-in-view')
-            observer.unobserve(entry.target)
-          }
-        })
-      },
-      { threshold: 0.12, rootMargin: '-40px 0px' }
-    )
-    targets.forEach(function (el) {
-      if (el.classList.contains('ll-reveal') && !el.classList.contains('ll-in-view')) {
-        observer.observe(el)
+    // Why Leaf cards observed individually (each may enter at a different scroll point).
+    const cardObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return
+        entry.target.classList.add('ll-in-view')
+        cardObserver.unobserve(entry.target)
+      })
+    }, { threshold: 0.12, rootMargin: '-40px 0px' })
+    whyCards.forEach(function (c) {
+      if (c.classList.contains('ll-in-view')) return
+      const r = c.getBoundingClientRect()
+      if (r.top < viewportH * 0.9) {
+        requestAnimationFrame(function () { c.classList.add('ll-in-view') })
+      } else {
+        cardObserver.observe(c)
       }
     })
   }
@@ -830,13 +1059,17 @@
   }
 
   function initEager() {
-    // These must run ASAP so links don't navigate on early clicks
+    // These must run ASAP so links don't navigate on early clicks,
+    // and so reveal classes land on elements before the first paint
+    // (no "preloaded" content flash on refresh).
     wireNavLinks()
     wireModalTriggers()
     hideWhyLearnMore()
     hideGetApiKeys()
     swapNavLogo()
     cleanupFooter()
+    enforceBannerHeading()
+    setupScrollReveals()
   }
 
   function initDeferred() {
@@ -845,7 +1078,6 @@
     setupAllPagesDropdown()
     setupCardHovers()
     setupButtonHovers()
-    setupScrollReveals()
     setupProgressLine()
     buildModal()
     // Re-run in case Framer re-hydrated and replaced nodes
@@ -854,10 +1086,21 @@
     swapNavLogo()
     hideGetApiKeys()
     cleanupFooter()
+    enforceBannerHeading()
+    window.addEventListener('resize', enforceBannerHeading)
   }
 
   function init() {
-    initEager()
+    try { initEager() } catch (e) {
+      console.error('[LeafLoans] initEager failed', e)
+    }
+    // Failsafe: never let the pre-hide rule trap content. If the reveal
+    // setup didn't run (or threw mid-way), flip the flag so pre-hidden
+    // elements become visible. Reveal animations may still happen for
+    // anything that has .ll-reveal; untouched elements just appear.
+    if (!document.documentElement.classList.contains('ll-anims-ready')) {
+      document.documentElement.classList.add('ll-anims-ready')
+    }
     setTimeout(initDeferred, 600)
   }
 

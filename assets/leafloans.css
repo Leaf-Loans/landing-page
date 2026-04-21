@@ -175,17 +175,81 @@ a[data-framer-component-type="PageLink"]:active,
   transition: transform 0.12s ease-out;
 }
 
-/* 2. Scroll reveal: initial hidden state + revealed state */
+/* 2. Scroll reveal — staggered cascade.
+   Each reveal target reads its delay from --ll-delay (set in JS by
+   DOM-order index within its section). The pre-hide rule prevents any
+   "preloaded" flash on refresh: until JS marks <html> as .ll-anims-ready,
+   we suppress reveal targets. If JS fails to run, a failsafe after 3s
+   reveals everything so nothing is permanently hidden. */
+html:not(.ll-anims-ready) [data-framer-name$="Section"] [data-framer-name="Title Wrapper"],
+html:not(.ll-anims-ready) [data-framer-name$="Section"] [data-framer-name="Body"],
+html:not(.ll-anims-ready) [data-framer-name$="Section"] [data-framer-name="Description"],
+html:not(.ll-anims-ready) [data-framer-name$="Section"] [data-framer-name="Image Wrapper"],
+html:not(.ll-anims-ready) [data-framer-name$="Section"] [data-framer-name="Benefit Wrapper"],
+html:not(.ll-anims-ready) [data-framer-name$="Section"] [data-framer-name="Card"],
+html:not(.ll-anims-ready) [data-framer-name$="Section"] [data-framer-name="Thumbnail"],
+html:not(.ll-anims-ready) [data-framer-name$="Section"] [data-framer-name$="Card"] {
+  opacity: 0;
+}
 .ll-reveal {
   opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.7s cubic-bezier(0.22, 0.68, 0, 1.2),
+  transform: translateY(24px);
+  transition: opacity 0.65s cubic-bezier(0.22, 0.68, 0, 1.2),
               transform 0.7s cubic-bezier(0.22, 0.68, 0, 1.2);
+  transition-delay: var(--ll-delay, 0ms);
   will-change: opacity, transform;
 }
 .ll-reveal.ll-in-view {
   opacity: 1;
   transform: translateY(0);
+}
+/* Image wrappers get a slightly stronger movement + tiny scale-in for polish */
+.ll-reveal[data-framer-name="Image Wrapper"],
+.ll-reveal[data-framer-name="Thumbnail"] {
+  transform: translateY(32px) scale(0.985);
+}
+.ll-reveal[data-framer-name="Image Wrapper"].ll-in-view,
+.ll-reveal[data-framer-name="Thumbnail"].ll-in-view {
+  transform: translateY(0) scale(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ll-reveal,
+  .ll-reveal[data-framer-name="Image Wrapper"],
+  .ll-reveal[data-framer-name="Thumbnail"] {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ── BANNER (About/CTA): force "Modern credit infrastructure" onto line 1.
+   Framer sizes the heading via --framer-font-size on a preset class; we
+   override font-size directly with !important and add white-space: nowrap
+   so the phrase never wraps. The inline <br/> still forces the break
+   between "infrastructure" and "for". High-specificity selector (section
+   ancestor + preset class + attribute) to beat Framer's preset cascade. */
+section[data-framer-name="Banner Section"] [data-framer-name="Title Wrapper"],
+section[data-framer-name="Banner Section"] [data-framer-name="Title"] {
+  max-width: none !important;
+  width: 100% !important;
+}
+section[data-framer-name="Banner Section"] .framer-text.framer-styles-preset-8z6aw4,
+section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"].framer-text,
+section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
+  font-size: 40px !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.02em !important;
+  white-space: nowrap !important;
+  --framer-font-size: 40px !important;
+}
+@media (max-width: 720px) {
+  section[data-framer-name="Banner Section"] .framer-text.framer-styles-preset-8z6aw4,
+  section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"].framer-text,
+  section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
+    font-size: 28px !important;
+    --framer-font-size: 28px !important;
+    white-space: normal !important;
+  }
 }
 
 /* ── HERO: shift right-side image up to align vertically with copy ───── */
@@ -217,14 +281,18 @@ a[data-framer-component-type="PageLink"]:active,
 #ll-modal-card {
   background: #fff;
   border-radius: 20px;
-  width: 100%; max-width: 460px;
-  padding: 32px 32px 28px;
+  width: 100%; max-width: 560px;
+  padding: 36px 36px 32px;
   box-shadow: 0 24px 60px rgba(0,0,0,0.28);
   position: relative;
   transform: translateY(12px) scale(0.98);
   transition: transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2);
 }
 #ll-modal-overlay.ll-open #ll-modal-card { transform: translateY(0) scale(1); }
+#ll-modal-card {
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
 #ll-modal-close {
   position: absolute; top: 14px; right: 14px;
   width: 32px; height: 32px;
@@ -246,28 +314,153 @@ a[data-framer-component-type="PageLink"]:active,
   line-height: 1.55;
   margin: 0 0 22px;
 }
+.ll-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 520px) {
+  .ll-row { grid-template-columns: 1fr; gap: 0; }
+}
 .ll-field {
   display: flex; flex-direction: column;
   gap: 6px; margin-bottom: 14px;
+  min-width: 0;
 }
 .ll-field label {
   font-size: 12px; font-weight: 600;
   color: #333; letter-spacing: 0.01em;
 }
-.ll-field input, .ll-field select {
+.ll-field .ll-optional {
+  font-weight: 400; color: #999; margin-left: 4px;
+}
+.ll-field input,
+.ll-field select,
+.ll-field textarea {
   font: inherit; font-size: 14px;
   padding: 11px 14px;
   border: 1.5px solid #e4e4e2;
   border-radius: 10px;
   background: #fff;
   color: #0c0c0c;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   width: 100%;
   box-sizing: border-box;
 }
-.ll-field input:focus, .ll-field select:focus {
+.ll-field textarea {
+  resize: vertical;
+  min-height: 72px;
+  line-height: 1.45;
+  font-family: inherit;
+}
+.ll-field input::placeholder,
+.ll-field textarea::placeholder {
+  color: #b3b3b0;
+}
+.ll-field input:focus,
+.ll-field select:focus,
+.ll-field textarea:focus {
   outline: none;
   border-color: rgb(120, 39, 207);
+  box-shadow: 0 0 0 3px rgba(120, 39, 207, 0.12);
+}
+
+/* Custom dropdown — styled to match .ll-field inputs exactly */
+.ll-dropdown {
+  position: relative;
+  width: 100%;
+}
+.ll-dropdown-trigger {
+  font: inherit; font-size: 14px;
+  padding: 11px 14px;
+  border: 1.5px solid #e4e4e2;
+  border-radius: 10px;
+  background: #fff;
+  color: #0c0c0c;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ll-dropdown-trigger:focus {
+  outline: none;
+  border-color: rgb(120, 39, 207);
+  box-shadow: 0 0 0 3px rgba(120, 39, 207, 0.12);
+}
+.ll-dropdown-open .ll-dropdown-trigger {
+  border-color: rgb(120, 39, 207);
+  box-shadow: 0 0 0 3px rgba(120, 39, 207, 0.12);
+}
+.ll-dropdown-invalid .ll-dropdown-trigger {
+  border-color: #c62828;
+}
+.ll-dropdown-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ll-dropdown-label.ll-dropdown-placeholder {
+  color: #9a9a97;
+}
+.ll-dropdown-chevron {
+  width: 12px;
+  height: 8px;
+  color: #666;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.22, 0.68, 0, 1.2);
+}
+.ll-dropdown-open .ll-dropdown-chevron {
+  transform: rotate(180deg);
+  color: rgb(120, 39, 207);
+}
+.ll-dropdown-menu {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 6px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1.5px solid #e4e4e2;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  z-index: 5;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.22, 0.68, 0, 1.2);
+  max-height: 260px;
+  overflow-y: auto;
+}
+.ll-dropdown-open .ll-dropdown-menu {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.ll-dropdown-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0c0c0c;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+  line-height: 1.35;
+}
+.ll-dropdown-item:hover {
+  background: rgba(120, 39, 207, 0.08);
+  color: rgb(120, 39, 207);
+}
+.ll-dropdown-item.ll-dropdown-selected {
+  background: rgba(120, 39, 207, 0.12);
+  color: rgb(120, 39, 207);
+  font-weight: 500;
 }
 #ll-modal-submit {
   width: 100%;
@@ -313,6 +506,18 @@ a[data-framer-component-type="PageLink"]:active,
   font-size: 14px; color: #666;
   margin: 0 0 18px;
   line-height: 1.5;
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 8px;
+}
+#ll-modal-success p a {
+  color: rgb(120, 39, 207);
+  text-decoration: none;
+  font-weight: 500;
+}
+#ll-modal-success p a:hover {
+  text-decoration: underline;
 }
 
 /* 3. Hover lift on feature/service/process cards */
