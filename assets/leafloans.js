@@ -651,17 +651,31 @@
   }
 
   /* ─────────────────────────────────────────
-     FIX 3: Scroll-reveal animations (Why Leaf Loans cards only)
-     Infrastructure cards stay static per request.
+     FIX 3: Scroll-reveal animations on major sections and Why Leaf Loans
+     cards. Sections fade + slide up as they enter the viewport.
   ───────────────────────────────────────── */
   function setupScrollReveals() {
-    const targets = findWhyCards()
+    const sectionTargets = Array.from(
+      document.querySelectorAll('[data-framer-name$="Section"]')
+    ).filter(function (el) {
+      const r = el.getBoundingClientRect()
+      return r.height > 120
+    })
+
+    const cardTargets = findWhyCards()
+    const seen = new Set()
+    const targets = [...sectionTargets, ...cardTargets].filter(function (el) {
+      if (seen.has(el)) return false
+      seen.add(el)
+      return true
+    })
     if (targets.length === 0) return
 
     const viewportH = window.innerHeight
     targets.forEach(function (el) {
       const r = el.getBoundingClientRect()
       if (r.width < 150 || r.height < 80) return
+      // Already above the fold → show immediately (no flash)
       if (r.top < viewportH * 0.9) {
         el.classList.add('ll-reveal', 'll-in-view')
       } else {
@@ -685,6 +699,50 @@
         observer.observe(el)
       }
     })
+  }
+
+  /* ─────────────────────────────────────────
+     How It Works — progress line animation.
+     Framer ships a vertical bar (Progress Line) that's meant to fill
+     as the user scrolls through the 4 numbered steps, but the hydration
+     handler doesn't fire on our static mirror. Sync translateY manually
+     from start (-{maxShift}px, hidden above) to 0 (fully extended) based
+     on how far through the How It Works block the viewport has scrolled.
+  ───────────────────────────────────────── */
+  function setupProgressLine() {
+    const line = document.querySelector('[data-framer-name="Progress Line"]')
+    if (!line) return
+    // Track against the 4-steps container (Benefits Wrapper), NOT the
+    // outer Progress Wrapper. Tracking the outer wrapper makes progress
+    // hit 100% only after the section is scrolling out of view.
+    const progressWrapper = line.closest('[data-framer-name="Progress Wrapper"]') ||
+      line.parentElement.parentElement
+    const items = progressWrapper
+      ? progressWrapper.querySelector('[data-framer-name="Benefits Wrapper"]')
+      : null
+    if (!items) return
+
+    // Respect Framer's baked-in starting translateY (typically -440px).
+    const initial = line.style.transform || ''
+    const m = /translateY\((-?\d+(?:\.\d+)?)px\)/.exec(initial)
+    const startY = m ? parseFloat(m[1]) : -440
+    const endY = 0
+
+    function update() {
+      const r = items.getBoundingClientRect()
+      const viewportH = window.innerHeight
+      // Anchor progress to the viewport's vertical midpoint passing
+      // through the items container. Progress hits 1 when the midpoint
+      // crosses the last item — i.e. while step 4 is still on screen.
+      const anchor = viewportH * 0.55 // slightly below center
+      const progress = (anchor - r.top) / r.height
+      const clamped = Math.max(0, Math.min(1, progress))
+      const y = startY + (endY - startY) * clamped
+      line.style.transform = 'translateY(' + y.toFixed(1) + 'px)'
+    }
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    update()
   }
 
   /* ─────────────────────────────────────────
@@ -788,6 +846,7 @@
     setupCardHovers()
     setupButtonHovers()
     setupScrollReveals()
+    setupProgressLine()
     buildModal()
     // Re-run in case Framer re-hydrated and replaced nodes
     wireNavLinks()
