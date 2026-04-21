@@ -1,0 +1,337 @@
+/* ─────────────────────────────────────────────────────────────
+   Leaf Loans enhancements over scraped Framer HTML
+   Applied after every scrape via post-process.js
+───────────────────────────────────────────────────────────── */
+
+/* 0a. Show scrolled-variant nav (framer-v-g1fdcd) always; hide the default one.
+   Using the Framer variant class directly since data-ll-* markers were stripped. */
+nav.framer-v-q635xq,
+nav[data-framer-name="Desktop"] {
+  display: none !important;
+}
+nav.framer-v-g1fdcd,
+nav[data-framer-name="Desktop White"] {
+  display: flex !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 9999 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  transition: background-color 0.24s ease, box-shadow 0.24s ease;
+}
+nav.framer-v-g1fdcd.ll-nav-solid,
+nav[data-framer-name="Desktop White"].ll-nav-solid {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06) !important;
+}
+/* Force logo always visible (override any Framer hover-reveal animation) */
+nav.framer-v-g1fdcd [data-framer-name="Logo"],
+nav[data-framer-name="Desktop White"] [data-framer-name="Logo"],
+nav.framer-v-g1fdcd [data-framer-name="Logo"] *,
+nav[data-framer-name="Desktop White"] [data-framer-name="Logo"] * {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+/* Hide "All Pages" trigger on first paint (no JS delay flash) */
+nav.framer-v-g1fdcd [data-framer-name="Dropdown Link"],
+nav[data-framer-name="Desktop White"] [data-framer-name="Dropdown Link"] {
+  display: none !important;
+}
+/* Add body top padding so content isn't hidden under the fixed nav */
+body {
+  padding-top: 0 !important;
+}
+
+/* 0c. Hide unused round-arrow CTAs in Infrastructure section cards */
+a.framer-13ugxyy,
+a[data-framer-name="Desktop"][href*="book-a-demo"].framer-O20u5 {
+  display: none !important;
+}
+
+/* 0d. Option A footer — clean minimal centered layout
+   Uses the original Framer lavender/peach gradient so it blends with the page */
+#ll-custom-footer {
+  background: linear-gradient(
+    to bottom,
+    rgba(245, 240, 250, 0) 0%,
+    rgba(245, 240, 250, 0.5) 30%,
+    #f5f0fa 70%,
+    #efe6f7 100%
+  );
+  color: #666;
+  padding: 80px 24px;
+  text-align: center;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  border-top: none;
+  margin-top: -1px;
+}
+#ll-custom-footer .ll-foot-logo {
+  display: inline-block;
+  margin-bottom: 14px;
+}
+#ll-custom-footer .ll-foot-logo img {
+  height: 28px;
+  width: auto;
+  display: block;
+  opacity: 1;
+}
+#ll-custom-footer .ll-foot-tagline {
+  font-size: 14px;
+  color: #888;
+  margin: 0 0 40px;
+  letter-spacing: 0.01em;
+}
+#ll-custom-footer .ll-foot-email {
+  color: #0c0c0c;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+#ll-custom-footer .ll-foot-email:hover {
+  color: rgb(120, 39, 207);
+}
+#ll-custom-footer .ll-foot-socials {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 36px;
+}
+#ll-custom-footer .ll-foot-socials a {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(12, 12, 12, 0.06);
+  color: #0c0c0c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.22, 0.68, 0, 1.2);
+  text-decoration: none;
+}
+#ll-custom-footer .ll-foot-socials a:hover {
+  background: rgb(120, 39, 207);
+  color: #fff;
+  transform: translateY(-2px);
+}
+#ll-custom-footer .ll-foot-socials svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+#ll-custom-footer .ll-foot-copy {
+  font-size: 12.5px;
+  color: #888;
+  padding-top: 0;
+  border-top: none;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* Hide the original Framer footer entirely once our custom one is rendered.
+   Collapsing the whole <footer> (not just its internals) removes the blank
+   gap between the dark CTA section and our custom footer. Exclude our
+   own <footer id="ll-custom-footer">. */
+body.ll-footer-replaced footer:not(#ll-custom-footer) {
+  display: none !important;
+}
+
+/* 0. Hide Framer branding & the pen/edit toggle (broad coverage) */
+#__framer-badge-container,
+[class*="__framer-badge"],
+a[href*="framer.com"][target="_blank"],
+a[href*="framer.link"][target="_blank"],
+a[href*="framer.website"],
+[data-framer-name="Editor Bar"],
+[class*="framer-editor-bar"],
+#__framer-editorbar,
+[data-framer-editorbar],
+[aria-label*="Edit" i][href*="framer" i],
+[aria-label*="Framer" i],
+[class*="editor-toggle"],
+[data-editor-toggle],
+[data-framer-edit-bar],
+/* Pen icon on the right rail */
+[style*="position: fixed"][style*="right:"][href*="framer" i],
+a[aria-label="Made in Framer"],
+.framer-made-in-framer,
+#ll-pen-hide-target {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
+/* 1. Button press/active feedback (subtle, don't fight Framer's hover) */
+button:active,
+a[data-framer-component-type="PageLink"]:active,
+[role="button"]:active {
+  transform: scale(0.97);
+  transition: transform 0.12s ease-out;
+}
+
+/* 2. Scroll reveal: initial hidden state + revealed state */
+.ll-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.22, 0.68, 0, 1.2),
+              transform 0.7s cubic-bezier(0.22, 0.68, 0, 1.2);
+  will-change: opacity, transform;
+}
+.ll-reveal.ll-in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── HERO: shift right-side image up to align vertically with copy ───── */
+/* Generic: first Image Wrapper on the page that's large enough to be the hero visual */
+[data-framer-name="Hero Section"] [data-framer-name="Image"],
+[data-framer-name="Hero Section"] [data-framer-name*="Image"],
+[data-framer-name="Hero Section"] [data-framer-name="Image Wrapper"],
+[data-framer-name="Hero Wrapper"] [data-framer-name="Image"],
+[data-framer-name="Hero Wrapper"] [data-framer-name="Image Wrapper"] {
+  transform: translateY(-80px) !important;
+  margin-bottom: -80px !important;
+}
+
+/* ── CONTACT MODAL ─────────────────────────── */
+#ll-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(12, 14, 13, 0.68);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+#ll-modal-overlay.ll-open { display: flex; opacity: 1; }
+#ll-modal-card {
+  background: #fff;
+  border-radius: 20px;
+  width: 100%; max-width: 460px;
+  padding: 32px 32px 28px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+  position: relative;
+  transform: translateY(12px) scale(0.98);
+  transition: transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2);
+}
+#ll-modal-overlay.ll-open #ll-modal-card { transform: translateY(0) scale(1); }
+#ll-modal-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 32px; height: 32px;
+  border: none; background: transparent;
+  font-size: 20px; color: #666;
+  cursor: pointer; line-height: 1;
+  border-radius: 50%;
+  transition: background 0.15s ease;
+}
+#ll-modal-close:hover { background: #f0f0f0; color: #111; }
+#ll-modal-title {
+  font-size: 22px; font-weight: 700;
+  color: #0c0c0c; line-height: 1.25;
+  letter-spacing: -0.015em;
+  margin: 0 0 6px;
+}
+#ll-modal-sub {
+  font-size: 14px; color: #666;
+  line-height: 1.55;
+  margin: 0 0 22px;
+}
+.ll-field {
+  display: flex; flex-direction: column;
+  gap: 6px; margin-bottom: 14px;
+}
+.ll-field label {
+  font-size: 12px; font-weight: 600;
+  color: #333; letter-spacing: 0.01em;
+}
+.ll-field input, .ll-field select {
+  font: inherit; font-size: 14px;
+  padding: 11px 14px;
+  border: 1.5px solid #e4e4e2;
+  border-radius: 10px;
+  background: #fff;
+  color: #0c0c0c;
+  transition: border-color 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+.ll-field input:focus, .ll-field select:focus {
+  outline: none;
+  border-color: rgb(120, 39, 207);
+}
+#ll-modal-submit {
+  width: 100%;
+  padding: 13px 20px;
+  background: #0c0c0c;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+#ll-modal-submit:hover { background: rgb(120, 39, 207); }
+#ll-modal-submit:active { transform: scale(0.98); }
+#ll-modal-submit:disabled { opacity: 0.6; cursor: wait; }
+#ll-modal-error {
+  font-size: 13px; color: #c62828;
+  margin-top: 8px; text-align: center;
+  min-height: 18px;
+}
+#ll-modal-success {
+  display: none;
+  text-align: center;
+  padding: 20px 0 8px;
+}
+#ll-modal-success.show { display: block; }
+#ll-modal-success .check {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: #e6f7ee;
+  color: #17a663;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  font-size: 28px;
+  margin-bottom: 14px;
+}
+#ll-modal-success h3 {
+  font-size: 18px; font-weight: 700;
+  color: #0c0c0c; margin: 0 0 6px;
+}
+#ll-modal-success p {
+  font-size: 14px; color: #666;
+  margin: 0 0 18px;
+  line-height: 1.5;
+}
+
+/* 3. Hover lift on feature/service/process cards */
+[data-framer-name="Feature Card"],
+[data-framer-name="Service Card"],
+[data-framer-name="Process Card"],
+[data-framer-name="Showcase Card"],
+[data-framer-name="Pricing Card"],
+[data-framer-name="Team Member Card"] {
+  transition: transform 0.35s cubic-bezier(0.22, 0.68, 0, 1.2),
+              box-shadow 0.35s ease;
+  will-change: transform;
+}
+[data-framer-name="Feature Card"]:hover,
+[data-framer-name="Service Card"]:hover,
+[data-framer-name="Process Card"]:hover,
+[data-framer-name="Showcase Card"]:hover,
+[data-framer-name="Pricing Card"]:hover,
+[data-framer-name="Team Member Card"]:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+}
