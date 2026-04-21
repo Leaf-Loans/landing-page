@@ -26,3 +26,6 @@ dist-ssr
 # Claude personal config (agents/commands live in ~/.claude; project
 # copies are for convenience, not for committing to a public repo)
 .claude/
+
+# Internal design system reference — do not publish on GitHub Pages
+styleguide.html
