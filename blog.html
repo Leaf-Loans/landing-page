@@ -287,31 +287,24 @@ a[data-framer-component-type="PageLink"]:active,
      Targets the 6 Why Leaf Loans cards by title match.
      Non-clickable: hover-only interaction.
   ───────────────────────────────────────── */
-  const WHY_CARD_TITLES = [
-    'Instant Liquidity',
-    'Trusted Credit Infrastructure',
-    'Real-Time Credit',
-    'Instant AI Approvals',
-    'Integrate Seamlessly',
-    'Fulfill Large Orders',
-  ]
-
   function findWhyCards() {
-    const cards = new Set()
-    document.querySelectorAll('a').forEach(function (a) {
-      const text = (a.textContent || '').trim()
-      if (text.length > 500) return
-      for (const title of WHY_CARD_TITLES) {
-        if (text.includes(title)) {
-          const box = a.getBoundingClientRect()
-          if (box.width > 250 && box.width < 500 && box.height > 300) {
-            cards.add(a)
-          }
-          break
-        }
-      }
-    })
-    return [...cards]
+    // Find the "Why Leaf Loans" heading, walk up to its section container,
+    // then collect all card-sized anchor elements within it.
+    const heading = [...document.querySelectorAll('h1, h2, h3, h4, h5')].find(
+      function (h) { return /why\s+leaf\s+loans/i.test((h.textContent || '').trim()) }
+    )
+    if (!heading) return []
+
+    let cur = heading
+    for (let i = 0; i < 12 && cur.parentElement; i++) {
+      cur = cur.parentElement
+      const links = [...cur.querySelectorAll('a')].filter(function (a) {
+        const box = a.getBoundingClientRect()
+        return box.width > 250 && box.width < 520 && box.height > 300
+      })
+      if (links.length >= 4) return links
+    }
+    return []
   }
 
   function setupCardHovers() {
@@ -354,12 +347,10 @@ a[data-framer-component-type="PageLink"]:active,
 
       card.addEventListener('mouseenter', function () {
         card.style.transform = 'translateY(-10px)'
-        card.style.boxShadow = '0 18px 48px rgba(0, 0, 0, 0.13)'
         if (title) title.style.setProperty('color', ACCENT, 'important')
       })
       card.addEventListener('mouseleave', function () {
         card.style.transform = ''
-        card.style.boxShadow = ''
         if (title) {
           if (origTitleColor) {
             title.style.setProperty('color', origTitleColor, origTitlePrio)
