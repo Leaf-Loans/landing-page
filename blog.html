@@ -527,40 +527,42 @@ a[data-framer-component-type="PageLink"]:active,
     const defaultNav = document.querySelector('nav[data-ll-default-nav], nav[class*="framer-v-q635xq"]')
     const scrolledNav = document.querySelector('nav[data-ll-scrolled-nav]')
 
-    if (!defaultNav) return
-
-    // If we have both variants in the DOM, toggle display between them.
-    // Otherwise just swap the class.
+    // Always show the scrolled-variant nav (Home / Technology / How It Works / About Us / Contact Us).
+    // Hide the default nav entirely — its menu items (Our Team, Pricing, Services) are not used.
+    if (defaultNav) defaultNav.style.display = 'none'
     if (scrolledNav) {
-      scrolledNav.style.display = 'none'
-      let last = null
+      scrolledNav.style.display = ''
+      scrolledNav.style.transition =
+        'background-color 0.28s ease, box-shadow 0.28s ease'
+
+      // Transparent bg at top, Framer's white bg when scrolled.
+      let lastScrolled = null
       function update() {
-        const sc = window.scrollY > 80
-        if (sc === last) return
-        last = sc
-        defaultNav.style.display = sc ? 'none' : ''
-        scrolledNav.style.display = sc ? '' : 'none'
-      }
-      window.addEventListener('scroll', update, { passive: true })
-      update()
-    } else {
-      // Fallback: class swap only (menu items won't change)
-      let last = null
-      function update() {
-        const sc = window.scrollY > 80
-        if (sc === last) return
-        last = sc
-        if (sc) {
-          defaultNav.classList.remove(NAV_DEFAULT)
-          defaultNav.classList.add(NAV_SCROLLED)
+        const isScrolled = window.scrollY > 80
+        if (isScrolled === lastScrolled) return
+        lastScrolled = isScrolled
+        if (isScrolled) {
+          scrolledNav.style.removeProperty('background-color')
+          scrolledNav.style.removeProperty('box-shadow')
         } else {
-          defaultNav.classList.remove(NAV_SCROLLED)
-          defaultNav.classList.add(NAV_DEFAULT)
+          scrolledNav.style.setProperty('background-color', 'transparent', 'important')
+          scrolledNav.style.setProperty('box-shadow', 'none', 'important')
         }
       }
       window.addEventListener('scroll', update, { passive: true })
       update()
     }
+
+    // Hide "All Pages" link across all navs (commented out per request)
+    const navHosts = [defaultNav, scrolledNav].filter(Boolean)
+    navHosts.forEach(function (host) {
+      host.querySelectorAll('a, button, div').forEach(function (el) {
+        const text = (el.textContent || '').trim()
+        if (/^All Pages/i.test(text) && text.length < 40 && el.children.length < 6) {
+          el.style.setProperty('display', 'none', 'important')
+        }
+      })
+    })
   }
 
   /* ─────────────────────────────────────────
