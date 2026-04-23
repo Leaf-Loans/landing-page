@@ -464,12 +464,26 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
     object-position: right center !important;
   }
 
-  /* Bank card overlay: scale down proportionally */
+  /* Bank card: its Framer positioning wrapper (.framer-or1obl) is set up
+     for desktop (left:-100px). On mobile, reposition to bottom-left INSIDE
+     the Dashboard wrapper. */
+  .framer-3pftir .framer-or1obl {
+    position: absolute !important;
+    bottom: 10px !important;
+    left: 10px !important;
+    right: auto !important;
+    top: auto !important;
+    width: 38% !important;
+    max-width: 130px !important;
+    height: auto !important;
+    aspect-ratio: 1.57 / 1 !important;
+  }
   .framer-3pftir [data-framer-name="Image Wrapper"] img[alt="Bank Card"],
   .framer-3pftir [data-framer-name="Banner Wrapper"] img[alt="Bank Card"] {
-    width: 29% !important;
-    max-width: 120px !important;
-    height: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: left center !important;
   }
 
   /* Buttons side-by-side on mobile */
@@ -499,6 +513,111 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
   .framer-3pftir [data-framer-name="Image Wrapper"] {
     aspect-ratio: 1.9 / 1 !important;
   }
+}
+
+/* ── NAV MOBILE: hamburger menu + opaque background ─────────────── */
+@media (max-width: 991px) {
+  /* Hide everything in the nav except the Menu (logo) and our hamburger. */
+  nav.framer-bkjSs [data-framer-name="Base Container"] > *:not([data-framer-name="Menu"]):not(.ll-nav-hamburger) {
+    display: none !important;
+  }
+  /* Distribute Menu (logo) left, hamburger right */
+  nav.framer-bkjSs [data-framer-name="Base Container"] {
+    justify-content: space-between !important;
+    padding: 0 20px !important;
+  }
+  /* Nav itself becomes solid white (backdrop blur for a touch of polish). */
+  nav.framer-bkjSs {
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  /* Hamburger toggle (injected via leafloans.js) */
+  .ll-nav-hamburger {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 40px; height: 40px;
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 12px;
+  }
+  .ll-nav-hamburger svg { width: 18px; height: 18px; color: #0c0c0c; }
+  .ll-nav-hamburger:hover { background: rgba(0, 0, 0, 0.04); }
+
+  /* Drawer — full-screen slide-down menu */
+  #ll-mobile-drawer {
+    position: fixed; inset: 0;
+    background: #ffffff;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.24s ease, visibility 0.24s ease;
+  }
+  #ll-mobile-drawer.ll-open { opacity: 1; visibility: visible; }
+  #ll-mobile-drawer .ll-drawer-header {
+    display: flex;
+    justify-content: space-between; align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  #ll-mobile-drawer .ll-drawer-header img { height: 26px; width: auto; }
+  #ll-mobile-drawer .ll-drawer-close {
+    width: 40px; height: 40px; border: none; background: transparent;
+    font-size: 26px; line-height: 1; cursor: pointer; color: #0c0c0c;
+    border-radius: 50%;
+    transition: background 0.15s ease;
+  }
+  #ll-mobile-drawer .ll-drawer-close:hover { background: rgba(0, 0, 0, 0.06); }
+  #ll-mobile-drawer nav {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 20px;
+    gap: 4px;
+  }
+  #ll-mobile-drawer nav a {
+    display: block;
+    padding: 18px 12px;
+    font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+    font-size: 20px; font-weight: 600;
+    color: #0c0c0c;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    transition: background 0.15s ease, padding-left 0.2s ease;
+  }
+  #ll-mobile-drawer nav a:hover { background: rgba(120, 39, 207, 0.04); padding-left: 18px; }
+  #ll-mobile-drawer .ll-drawer-cta {
+    margin: 24px 20px;
+    padding: 16px 24px;
+    background: #0c0c0c;
+    color: #fff;
+    border-radius: 50px;
+    font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+    font-size: 15px; font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.18s ease;
+  }
+  #ll-mobile-drawer .ll-drawer-cta:hover { background: rgb(120, 39, 207); }
+
+  /* Lock page scroll when drawer open */
+  html.ll-drawer-open, html.ll-drawer-open body { overflow: hidden; }
+}
+
+/* Hide hamburger + mobile drawer on desktop.
+   Drawer markup is injected into the DOM on every breakpoint; without this
+   rule it would render as inline block content at the bottom of the page. */
+.ll-nav-hamburger { display: none; }
+#ll-mobile-drawer { display: none; }
+@media (min-width: 992px) {
+  .ll-nav-hamburger { display: none !important; }
+  #ll-mobile-drawer { display: none !important; }
 }
 
 

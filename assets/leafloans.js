@@ -1088,6 +1088,7 @@
     setupButtonHovers()
     setupProgressLine()
     buildModal()
+    buildMobileNav()
     // Re-run in case Framer re-hydrated and replaced nodes
     wireNavLinks()
     wireModalTriggers()
@@ -1096,6 +1097,68 @@
     cleanupFooter()
     enforceBannerHeading()
     window.addEventListener('resize', enforceBannerHeading)
+  }
+
+  /* ─────────────────────────────────────────
+     MOBILE NAV — hamburger button + full-screen drawer.
+     Builds from scratch rather than reusing Framer's nav markup.
+  ───────────────────────────────────────── */
+  function buildMobileNav() {
+    if (document.getElementById('ll-mobile-drawer')) return
+    const nav = document.querySelector('nav.framer-bkjSs')
+    if (!nav) return
+    const baseContainer = nav.querySelector('[data-framer-name="Base Container"]')
+    if (!baseContainer) return
+
+    // Hamburger button — insert at the right end of the Base Container
+    const btn = document.createElement('button')
+    btn.className = 'll-nav-hamburger'
+    btn.setAttribute('aria-label', 'Open menu')
+    btn.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<line x1="3" y1="6" x2="21" y2="6"/>' +
+        '<line x1="3" y1="12" x2="21" y2="12"/>' +
+        '<line x1="3" y1="18" x2="21" y2="18"/>' +
+      '</svg>'
+    baseContainer.appendChild(btn)
+
+    // Drawer
+    const drawer = document.createElement('div')
+    drawer.id = 'll-mobile-drawer'
+    drawer.innerHTML =
+      '<div class="ll-drawer-header">' +
+        '<a href="./"><img src="assets/img/leafloans-wordmark.png" alt="Leaf Loans" /></a>' +
+        '<button class="ll-drawer-close" aria-label="Close menu">×</button>' +
+      '</div>' +
+      '<nav>' +
+        '<a href="./">Home</a>' +
+        '<a href="./about-us">About Us</a>' +
+        '<a href="#technology" data-ll-smooth>Technology</a>' +
+        '<a href="#how-it-works" data-ll-smooth>How It Works</a>' +
+        '<a href="./services">Services</a>' +
+        '<a href="./contact-us">Contact Us</a>' +
+      '</nav>' +
+      '<a href="./contact-us" class="ll-drawer-cta">Get Started →</a>'
+    document.body.appendChild(drawer)
+
+    function open() {
+      drawer.classList.add('ll-open')
+      document.documentElement.classList.add('ll-drawer-open')
+    }
+    function close() {
+      drawer.classList.remove('ll-open')
+      document.documentElement.classList.remove('ll-drawer-open')
+    }
+
+    btn.addEventListener('click', open)
+    drawer.querySelector('.ll-drawer-close').addEventListener('click', close)
+    // Close when any drawer link is clicked
+    drawer.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', close)
+    })
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && drawer.classList.contains('ll-open')) close()
+    })
   }
 
   function init() {
