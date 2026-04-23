@@ -429,9 +429,11 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
     display: contents !important;
   }
 
-  /* Order on Banner Wrapper: Image first, Title second, Body+Buttons last */
+  /* Order on Banner Wrapper: Image first, Title second, Body+Buttons last.
+     Title is a direct child of Banner Wrapper (no separate Title Wrapper on
+     this page), so we target it directly. */
   .framer-3pftir [data-framer-name="Image Wrapper"] { order: 1 !important; }
-  .framer-3pftir [data-framer-name="Title Wrapper"] { order: 2 !important; }
+  .framer-3pftir [data-framer-name="Title"] { order: 2 !important; }
   .framer-3pftir [data-framer-name="Body & Buttons Wrapper"] { order: 3 !important; }
 
   /* Image Wrapper: full-width block at top */
