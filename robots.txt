@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /styleguide.html
 
-Sitemap: https://leafloans.ai/sitemap.xml
+Sitemap: https://www.leafloans.ai/sitemap.xml

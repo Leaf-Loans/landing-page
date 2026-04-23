@@ -263,7 +263,7 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
   }
 }
 
-/* ── HERO: shift right-side image up to align vertically with copy ───── */
+
 /* Generic: first Image Wrapper on the page that's large enough to be the hero visual */
 [data-framer-name="Hero Section"] [data-framer-name="Image"],
 [data-framer-name="Hero Section"] [data-framer-name*="Image"],
@@ -274,12 +274,238 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
   margin-bottom: -80px !important;
 }
 
+/* ── HERO: paint Framer's ambient-gradient directly on Banner Section ──
+   Gradient colors come from the published Framer site: #d5c9f8 purple,
+   #ffd5bf peach, #ccf6ea mint, on #fafafa. Frame bleeds wider to the page
+   edges, with a bottom mask-fade so there's no hard rounded-rectangle edge. */
+.framer-3pftir {
+  position: relative;
+  isolation: isolate;
+}
+.framer-3pftir::before {
+  content: "";
+  position: absolute;
+  /* Extend ALL the way to the top so the nav sits on the gradient too.
+     Banner Section already has 180px top padding, so the gradient starts
+     above the headline and continues under the fixed nav. */
+  inset: 0 0 0 0;
+  border-radius: 0;
+  background:
+    /* Exact Framer hero — three blobs only, no peach. Centers + sizes
+       measured via Playwright on the published site. */
+    /* Mint Gradient — off-right at (106%, 24%), ellipse 44%×64% */
+    radial-gradient(ellipse 44% 64% at 106% 24%, rgba(204, 246, 234, 0.8) 0%, rgba(204, 246, 234, 0.5) 50%, transparent 100%),
+    /* Purple Gradient Small — at (69%, 50%), ellipse 28%×27% */
+    radial-gradient(ellipse 28% 27% at 69% 50%, rgba(213, 201, 248, 0.8) 0%, rgba(213, 201, 248, 0.5) 49%, transparent 100%),
+    /* Purple Gradient (big) — at (52%, 50%), ellipse 49%×58% */
+    radial-gradient(ellipse 49% 58% at 52% 50%, rgba(213, 201, 248, 0.8) 0%, rgba(213, 201, 248, 0.5) 49%, transparent 100%),
+    #fafafa;
+  /* Four-side soft mask — bottom fade extended so the gradient reaches lower
+     and transitions gently into the next section. */
+  mask-image:
+    linear-gradient(to bottom, transparent 0%, black 8%, black 72%, transparent 100%),
+    linear-gradient(to right,  transparent 0%, black 6%, black 94%, transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0%, black 8%, black 72%, transparent 100%),
+    linear-gradient(to right,  transparent 0%, black 6%, black 94%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  z-index: -1;
+  pointer-events: none;
+}
+.framer-3pftir .framer-1v2m2oi { display: none !important; }
+/* Hide the original Framer gradient blobs too — they still render in the
+   static export and bleed green/purple in unwanted places. Our ::before
+   above already paints the full gradient composition. */
+.framer-3pftir .framer-iqlg2j,
+.framer-3pftir .framer-hylm9e,
+.framer-3pftir .framer-1cj5bef,
+.framer-3pftir .framer-1qknlvf,
+.framer-3pftir .framer-1rcpjol,
+.framer-3pftir .framer-1bo1yx6,
+.framer-3pftir .framer-g94fx5 { display: none !important; }
+
+
+
+/* ── HERO: entrance animations matching Framer exactly ──
+   Measured via Playwright on the published site:
+     Title + Body:   opacity 0→1, translateY(60px→0), delay 250ms, duration 650ms
+     Dashboard Image: opacity 0→1, translateX(400px→0), delay 250ms, duration 1150ms
+   Easing: ease-out (slow start, fast finish). */
+@keyframes ll-hero-text-in {
+  from { opacity: 0; transform: translateY(60px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ll-hero-image-in {
+  from { opacity: 0; transform: translateX(400px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.framer-3pftir [data-framer-name="Title"],
+.framer-3pftir [data-framer-name="Body"] {
+  animation: ll-hero-text-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+}
+/* Dashboard slide: only the inner "Image" element moves, not the wrapper. */
+.framer-3pftir [data-framer-name="Image Wrapper"] [data-framer-name="Image"]:first-of-type {
+  animation: ll-hero-image-in 1.15s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .framer-3pftir [data-framer-name="Title"],
+  .framer-3pftir [data-framer-name="Body"],
+  .framer-3pftir [data-framer-name="Image Wrapper"] [data-framer-name="Image"]:first-of-type {
+    animation: none !important;
+  }
+}
+
+/* Hero buttons should NOT fade in via scroll-reveal — Framer keeps them at
+   opacity:1 from t=0. Override the .ll-reveal treatment inside the hero. */
+.framer-3pftir [data-framer-name="Buttons Wrapper"].ll-reveal,
+.framer-3pftir [data-framer-name="Body & Buttons Wrapper"].ll-reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Primary CTA pill — matches Framer's hover-fill behavior:
+     default: transparent fill, dark outline, dark text + arrow
+     hover:   fills #0c0c0c, text + arrow turn white */
+.framer-3pftir [data-framer-name="Buttons Wrapper"] a[data-framer-name="Desktop"] {
+  transition: background-color 0.22s ease, color 0.22s ease;
+  position: relative;
+  isolation: isolate;
+}
+.framer-3pftir [data-framer-name="Buttons Wrapper"] a[data-framer-name="Desktop"]:hover {
+  background: #0c0c0c !important;
+  background-color: #0c0c0c !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  /* Inset box-shadow guarantees a fully-opaque dark interior, regardless
+     of what browser / compositor does with the transparent base bg-color. */
+  box-shadow: inset 0 0 0 9999px #0c0c0c !important;
+  z-index: 3;
+}
+/* Flip text color (Framer-set via CSS variables) on hover */
+.framer-3pftir [data-framer-name="Buttons Wrapper"] a[data-framer-name="Desktop"]:hover [data-framer-name="Button Text"],
+.framer-3pftir [data-framer-name="Buttons Wrapper"] a[data-framer-name="Desktop"]:hover .framer-text {
+  color: #ffffff !important;
+  --extracted-r6o4lv: #ffffff !important;
+  --framer-text-color: #ffffff !important;
+}
+/* Flip arrow-icon fill/stroke on hover */
+.framer-3pftir [data-framer-name="Buttons Wrapper"] a[data-framer-name="Desktop"]:hover [data-framer-name="Arrow Icon"] {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+.framer-3pftir [data-framer-name="Buttons Wrapper"] a[data-framer-name="Desktop"]:hover [data-framer-name="Arrow Icon"] svg {
+  fill: #ffffff !important;
+}
+
+
+/* Scale the Dashboard image +20% on desktop — anchored top-right so it grows
+   into the lavender area without pushing the headline copy. */
+@media (min-width: 992px) {
+  .framer-3pftir [data-framer-name="Image Wrapper"] {
+    transform: scale(1.2);
+    transform-origin: top right;
+  }
+}
+
+/* ── HERO MOBILE — match Framer's mobile layout exactly ──
+   Framer measured on a 390×844 viewport:
+     - Image Wrapper: 350×173, position:relative, order=first
+     - Banner Wrapper: flex-column, gap 20px
+     - Title: 2 lines, wraps naturally
+     - Body: max-width stretches full column
+     - Buttons Wrapper: flex-row, gap 20px (not stacked)
+     - Bank Card: 101×64 (scaled-down overlay on the Dashboard) */
+@media (max-width: 991px) {
+  .framer-3pftir::before {
+    inset: 64px 0 0 0;
+  }
+
+  /* Dissolve Bottom Wrapper on mobile so its children (Image Wrapper,
+     Body & Buttons Wrapper) become direct siblings of Title Wrapper in
+     Banner Wrapper's flex-column. That lets us order them independently. */
+  .framer-3pftir [data-framer-name="Bottom Wrapper"] {
+    display: contents !important;
+  }
+
+  /* Order on Banner Wrapper: Image first, Title second, Body+Buttons last */
+  .framer-3pftir [data-framer-name="Image Wrapper"] { order: 1 !important; }
+  .framer-3pftir [data-framer-name="Title Wrapper"] { order: 2 !important; }
+  .framer-3pftir [data-framer-name="Body & Buttons Wrapper"] { order: 3 !important; }
+
+  /* Image Wrapper: full-width block at top */
+  .framer-3pftir [data-framer-name="Image Wrapper"] {
+    position: relative !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    aspect-ratio: 2.02 / 1 !important;
+    top: auto !important;
+    right: auto !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  /* Body & Buttons Wrapper: full width on mobile */
+  .framer-3pftir [data-framer-name="Body & Buttons Wrapper"] {
+    width: 100% !important;
+    flex: 0 0 auto !important;
+  }
+
+  /* Dashboard image: fit inside its wrapper, centered */
+  .framer-3pftir [data-framer-name="Image Wrapper"] img[alt="Dashboard"] {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: right center !important;
+  }
+
+  /* Bank card overlay: scale down proportionally */
+  .framer-3pftir [data-framer-name="Image Wrapper"] img[alt="Bank Card"],
+  .framer-3pftir [data-framer-name="Banner Wrapper"] img[alt="Bank Card"] {
+    width: 29% !important;
+    max-width: 120px !important;
+    height: auto !important;
+  }
+
+  /* Buttons side-by-side on mobile */
+  .framer-3pftir [data-framer-name="Buttons Wrapper"] {
+    flex-direction: row !important;
+    gap: 20px !important;
+    flex-wrap: wrap;
+  }
+
+  /* Mobile: only the text rises on load. Image is already visible above
+     (no off-screen slide — we're at narrow width, the 400px X slide looks
+     broken on mobile because the image is already full-width). */
+  .framer-3pftir [data-framer-name="Image Wrapper"] [data-framer-name="Image"]:first-of-type {
+    animation: none !important;
+  }
+}
+@media (max-width: 575px) {
+  .framer-3pftir::before {
+    inset: 56px 0 0 0;
+    background:
+      radial-gradient(ellipse 85% 35% at 10% 100%, rgba(213, 201, 248, 1) 0%, rgba(213, 201, 248, 0.35) 45%, transparent 75%),
+      radial-gradient(ellipse 80% 35% at 95% 100%, rgba(255, 213, 191, 1) 0%, rgba(255, 213, 191, 0.35) 48%, transparent 75%),
+      radial-gradient(ellipse 55% 25% at 100% 2%, rgba(204, 246, 234, 1) 0%, rgba(204, 246, 234, 0.3) 55%, transparent 80%),
+      #fafafa;
+  }
+  /* Slightly taller aspect for phones so Dashboard + Bank Card both read */
+  .framer-3pftir [data-framer-name="Image Wrapper"] {
+    aspect-ratio: 1.9 / 1 !important;
+  }
+}
+
+
 /* ── CONTACT MODAL ─────────────────────────── */
 #ll-modal-overlay {
   position: fixed; inset: 0;
-  background: rgba(12, 14, 13, 0.68);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(12, 14, 13, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 10000;
   display: none;
   align-items: center; justify-content: center;
@@ -291,39 +517,69 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
 #ll-modal-overlay.ll-open { display: flex; opacity: 1; }
 #ll-modal-card {
   background: #fff;
-  border-radius: 20px;
+  border-radius: 24px;
   width: 100%; max-width: 560px;
-  padding: 36px 36px 32px;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+  padding: 0;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(0, 0, 0, 0.04);
   position: relative;
-  transform: translateY(12px) scale(0.98);
-  transition: transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2);
+  transform: translateY(16px) scale(0.97);
+  transition: transform 0.32s cubic-bezier(0.22, 0.68, 0, 1.2);
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 #ll-modal-overlay.ll-open #ll-modal-card { transform: translateY(0) scale(1); }
-#ll-modal-card {
-  max-height: calc(100vh - 48px);
+/* Thin brand gradient accent along the top edge of the card */
+#ll-modal-card::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3e7a58 0%, #5a8f6e 35%, #7827cf 100%);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  opacity: 0.9;
+}
+#ll-modal-form-wrap,
+#ll-modal-success {
+  padding: 40px 40px 36px;
   overflow-y: auto;
 }
+/* Brand header inside the card */
+#ll-modal-brand {
+  display: flex; align-items: center;
+  margin: 0 0 26px;
+}
+#ll-modal-brand img {
+  height: 26px; width: auto; display: block;
+}
 #ll-modal-close {
-  position: absolute; top: 14px; right: 14px;
-  width: 32px; height: 32px;
-  border: none; background: transparent;
-  font-size: 20px; color: #666;
+  position: absolute; top: 18px; right: 18px;
+  width: 36px; height: 36px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 22px; color: #888; font-weight: 400;
   cursor: pointer; line-height: 1;
   border-radius: 50%;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  z-index: 2;
 }
-#ll-modal-close:hover { background: #f0f0f0; color: #111; }
+#ll-modal-close:hover {
+  background: #f4f4f2; color: #0c0c0c;
+  border-color: rgba(0, 0, 0, 0.06);
+}
 #ll-modal-title {
-  font-size: 22px; font-weight: 700;
-  color: #0c0c0c; line-height: 1.25;
-  letter-spacing: -0.015em;
-  margin: 0 0 6px;
+  font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+  font-size: 30px; font-weight: 800;
+  color: #0c0c0c; line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px;
 }
 #ll-modal-sub {
-  font-size: 14px; color: #666;
+  font-size: 14.5px; color: #555;
   line-height: 1.55;
-  margin: 0 0 22px;
+  margin: 0 0 26px;
+  max-width: 440px;
 }
 .ll-row {
   display: grid;
@@ -335,29 +591,34 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
 }
 .ll-field {
   display: flex; flex-direction: column;
-  gap: 6px; margin-bottom: 14px;
+  gap: 7px; margin-bottom: 16px;
   min-width: 0;
 }
 .ll-field label {
-  font-size: 12px; font-weight: 600;
-  color: #333; letter-spacing: 0.01em;
+  font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+  font-size: 11px; font-weight: 700;
+  color: #0c0c0c; letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .ll-field .ll-optional {
-  font-weight: 400; color: #999; margin-left: 4px;
+  font-weight: 500; color: #aaa; margin-left: 6px;
+  text-transform: none; letter-spacing: 0.01em; font-size: 11px;
 }
 .ll-field input,
 .ll-field select,
 .ll-field textarea {
-  font: inherit; font-size: 14px;
-  padding: 11px 14px;
-  border: 1.5px solid #e4e4e2;
-  border-radius: 10px;
-  background: #fff;
+  font: inherit; font-size: 14.5px;
+  padding: 13px 15px;
+  border: 1px solid #e4e4e2;
+  border-radius: 12px;
+  background: #fafaf8;
   color: #0c0c0c;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
   width: 100%;
   box-sizing: border-box;
 }
+.ll-field input:hover,
+.ll-field textarea:hover { background: #fff; border-color: #d8d8d5; }
 .ll-field textarea {
   resize: vertical;
   min-height: 72px;
@@ -372,8 +633,9 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
 .ll-field select:focus,
 .ll-field textarea:focus {
   outline: none;
+  background: #fff;
   border-color: rgb(120, 39, 207);
-  box-shadow: 0 0 0 3px rgba(120, 39, 207, 0.12);
+  box-shadow: 0 0 0 4px rgba(120, 39, 207, 0.14);
 }
 
 /* Custom dropdown — styled to match .ll-field inputs exactly */
@@ -382,11 +644,11 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
   width: 100%;
 }
 .ll-dropdown-trigger {
-  font: inherit; font-size: 14px;
-  padding: 11px 14px;
-  border: 1.5px solid #e4e4e2;
-  border-radius: 10px;
-  background: #fff;
+  font: inherit; font-size: 14.5px;
+  padding: 13px 15px;
+  border: 1px solid #e4e4e2;
+  border-radius: 12px;
+  background: #fafaf8;
   color: #0c0c0c;
   cursor: pointer;
   width: 100%;
@@ -396,16 +658,19 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
+.ll-dropdown-trigger:hover { background: #fff; border-color: #d8d8d5; }
 .ll-dropdown-trigger:focus {
   outline: none;
+  background: #fff;
   border-color: rgb(120, 39, 207);
-  box-shadow: 0 0 0 3px rgba(120, 39, 207, 0.12);
+  box-shadow: 0 0 0 4px rgba(120, 39, 207, 0.14);
 }
 .ll-dropdown-open .ll-dropdown-trigger {
+  background: #fff;
   border-color: rgb(120, 39, 207);
-  box-shadow: 0 0 0 3px rgba(120, 39, 207, 0.12);
+  box-shadow: 0 0 0 4px rgba(120, 39, 207, 0.14);
 }
 .ll-dropdown-invalid .ll-dropdown-trigger {
   border-color: #c62828;
@@ -475,61 +740,103 @@ section[data-framer-name="Banner Section"] [data-styles-preset="XTknRAdUH"] {
 }
 #ll-modal-submit {
   width: 100%;
-  padding: 13px 20px;
+  padding: 16px 24px;
   background: #0c0c0c;
   color: #fff;
   border: none;
   border-radius: 50px;
-  font-size: 14px; font-weight: 600;
+  font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+  font-size: 14.5px; font-weight: 700;
+  letter-spacing: -0.005em;
   cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.18s ease, transform 0.18s ease;
+  margin-top: 14px;
+  transition: background 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 20px rgba(12, 12, 12, 0.16);
 }
-#ll-modal-submit:hover { background: rgb(120, 39, 207); }
-#ll-modal-submit:active { transform: scale(0.98); }
-#ll-modal-submit:disabled { opacity: 0.6; cursor: wait; }
+#ll-modal-submit:hover {
+  background: rgb(120, 39, 207);
+  box-shadow: 0 10px 28px rgba(120, 39, 207, 0.28);
+  transform: translateY(-1px);
+}
+#ll-modal-submit:active { transform: translateY(0) scale(0.98); }
+#ll-modal-submit:disabled { opacity: 0.55; cursor: wait; transform: none; box-shadow: none; }
 #ll-modal-error {
   font-size: 13px; color: #c62828;
-  margin-top: 8px; text-align: center;
+  margin-top: 10px; text-align: center;
   min-height: 18px;
+  font-weight: 500;
 }
+/* Success state — crafted to feel like a moment */
 #ll-modal-success {
   display: none;
   text-align: center;
-  padding: 20px 0 8px;
+  padding: 48px 40px 40px;
 }
-#ll-modal-success.show { display: block; }
+#ll-modal-success.show {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: ll-success-in 0.45s cubic-bezier(0.22, 0.68, 0, 1.2);
+}
+@keyframes ll-success-in {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
 #ll-modal-success .check {
-  width: 52px; height: 52px;
+  width: 64px; height: 64px;
   border-radius: 50%;
-  background: #e6f7ee;
+  background: linear-gradient(135deg, #e6f7ee 0%, #d6f0e0 100%);
   color: #17a663;
   display: inline-flex;
   align-items: center; justify-content: center;
-  font-size: 28px;
-  margin-bottom: 14px;
+  font-size: 32px; font-weight: 600;
+  margin-bottom: 20px;
+  position: relative;
+  animation: ll-check-pop 0.55s cubic-bezier(0.22, 0.68, 0, 1.6) 0.1s backwards;
+  box-shadow: 0 0 0 8px rgba(23, 166, 99, 0.08);
+}
+@keyframes ll-check-pop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
 }
 #ll-modal-success h3 {
-  font-size: 18px; font-weight: 700;
-  color: #0c0c0c; margin: 0 0 6px;
+  font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+  font-size: 26px; font-weight: 800;
+  color: #0c0c0c; margin: 0 0 10px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 #ll-modal-success p {
-  font-size: 14px; color: #666;
-  margin: 0 0 18px;
-  line-height: 1.5;
-  max-width: 380px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0 8px;
+  font-size: 14.5px; color: #555;
+  margin: 0 0 24px;
+  line-height: 1.55;
+  max-width: 400px;
 }
 #ll-modal-success p a {
   color: rgb(120, 39, 207);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(120, 39, 207, 0.2);
+  transition: border-color 0.15s ease;
 }
-#ll-modal-success p a:hover {
-  text-decoration: underline;
+#ll-modal-success p a:hover { border-bottom-color: rgb(120, 39, 207); }
+
+/* Secondary "close" button on the success screen */
+#ll-modal-close-2 {
+  padding: 13px 26px !important;
+  background: #f4f4f2 !important;
+  color: #0c0c0c !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-radius: 50px !important;
+  font-family: 'Manrope', 'Inter', system-ui, sans-serif !important;
+  font-size: 13.5px !important; font-weight: 700 !important;
+  letter-spacing: -0.005em !important;
+  cursor: pointer !important;
+  transition: background 0.18s ease, transform 0.18s ease !important;
 }
+#ll-modal-close-2:hover { background: #e8e8e6 !important; transform: translateY(-1px); }
+#ll-modal-close-2:active { transform: translateY(0) scale(0.98); }
 
 /* 3. Hover lift on feature/service/process cards */
 [data-framer-name="Feature Card"],

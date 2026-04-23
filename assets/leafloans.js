@@ -55,6 +55,7 @@
       '<div id="ll-modal-card">' +
       '<button id="ll-modal-close" aria-label="Close">\u00d7</button>' +
       '<div id="ll-modal-form-wrap">' +
+      '<div id="ll-modal-brand"><img src="assets/img/leafloans-wordmark.png" alt="Leaf Loans" /></div>' +
       '<h2 id="ll-modal-title">Let\u2019s talk.</h2>' +
       '<p id="ll-modal-sub">Tell us a bit about you. We\u2019ll be in touch.</p>' +
       '<form id="ll-modal-form" novalidate>' +
@@ -87,9 +88,9 @@
       '</div>' +
       '<div id="ll-modal-success">' +
         '<div class="check">\u2713</div>' +
-        '<h3>Got it.</h3>' +
-        '<p>A member of our partnership team will reach out within 2 business days. If it\u2019s urgent, email <a href="mailto:connect@leafloans.ai">connect@leafloans.ai</a>.</p>' +
-        '<button id="ll-modal-close-2" class="ll-secondary">Close</button>' +
+        '<h3 id="ll-modal-success-title">You\u2019re in.</h3>' +
+        '<p id="ll-modal-success-copy">A member of our team will reach out within <strong>2 business days</strong>. Something urgent? Write to <a href="mailto:connect@leafloans.ai">connect@leafloans.ai</a>.</p>' +
+        '<button id="ll-modal-close-2" class="ll-secondary">Back to site</button>' +
       '</div>' +
       '</div>'
     document.body.appendChild(overlay)
@@ -104,6 +105,8 @@
         if (form) form.reset()
         if (success) success.classList.remove('show')
         if (formWrap) formWrap.style.display = ''
+        const successTitle = document.getElementById('ll-modal-success-title')
+        if (successTitle) successTitle.textContent = 'You’re in.'
         const err = document.getElementById('ll-modal-error')
         if (err) err.textContent = ''
         // Reset the custom dropdown too (form.reset doesn't touch it)
@@ -179,14 +182,7 @@
     }
 
     const closeBtn2 = overlay.querySelector('#ll-modal-close-2')
-    if (closeBtn2) {
-      // Reuse modal close button styling
-      closeBtn2.style.cssText =
-        'padding: 11px 22px; background: #f4f4f2; color: #0c0c0c; border: none; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s ease;'
-      closeBtn2.addEventListener('mouseenter', function () { closeBtn2.style.background = '#e8e8e6' })
-      closeBtn2.addEventListener('mouseleave', function () { closeBtn2.style.background = '#f4f4f2' })
-      closeBtn2.addEventListener('click', close)
-    }
+    if (closeBtn2) closeBtn2.addEventListener('click', close)
 
     // Form submit
     const form = overlay.querySelector('#ll-modal-form')
@@ -217,6 +213,8 @@
       submit.disabled = true
       submit.textContent = 'Sending\u2026'
 
+      const params = new URLSearchParams(window.location.search)
+      const utmSource = params.get('utm_source') || ''
       const payload = {
         name: form.name.value.trim(),
         email: form.email.value.trim(),
@@ -225,8 +223,13 @@
         usecase: usecaseVal,
         usecase_label: (USE_CASE_OPTIONS.find(function (o) { return o.v === usecaseVal }) || {}).l || '',
         notes: form.notes.value.trim(),
-        source: overlay.dataset.source || 'Contact',
-        page: window.location.pathname,
+        source: utmSource || 'Leaf Loans Landing Page',
+        utm_medium: params.get('utm_medium') || '',
+        utm_campaign: params.get('utm_campaign') || '',
+        utm_term: params.get('utm_term') || '',
+        utm_content: params.get('utm_content') || '',
+        referrer: document.referrer || '',
+        cta: overlay.dataset.source || '',
         timestamp: new Date().toISOString(),
       }
 
@@ -244,6 +247,11 @@
           // No endpoint configured — log for dev and pretend success
           console.info('[LeafLoans] No SHEET_WEBHOOK_URL set. Submission would have been:', payload)
           await new Promise(function (r) { setTimeout(r, 400) })
+        }
+        const firstName = (payload.name || '').split(/\s+/)[0]
+        const successTitle = document.getElementById('ll-modal-success-title')
+        if (successTitle && firstName) {
+          successTitle.textContent = 'You’re in, ' + firstName + '.'
         }
         document.getElementById('ll-modal-form-wrap').style.display = 'none'
         document.getElementById('ll-modal-success').classList.add('show')

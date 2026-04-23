@@ -5,8 +5,9 @@ AI-native lending infrastructure for India's B2B economy. Pre-integrated with GE
 ## Stack
 
 - Pages started as a Framer export (scraped with Playwright) — HTML is now **frozen** and edited directly. No scraper re-run.
-- Deploy: GitHub Pages at `https://leaf-loans.github.io/landing-page/`. Any push to `main` ships.
-- All Claude-era customization lives in two files: `assets/leafloans.css` + `assets/leafloans.js`. `apply.js` injects them into each HTML page via `<link data-leafloans-inject>` and `<script data-leafloans-inject>` tags. Run `node apply.js` after adding new HTML pages.
+- Deploy: GitHub Pages from `Leaf-Loans/landing-page` `main`, served at `https://www.leafloans.ai/` (CNAME at repo root). Any push to `main` ships.
+- All Claude-era customization lives in three files: `assets/leafloans.css` + `assets/leafloans.js` + `assets/config.js`. `apply.js` injects them into each HTML page. Run `node apply.js` after adding new HTML pages.
+- Lead capture: contact-modal posts to a Google Apps Script web app (URL set in `assets/config.js` as `window.LL_SHEET_WEBHOOK`). Source + setup steps in `scripts/SETUP-SHEETS.md`. Domain setup steps in `scripts/SETUP-DOMAIN.md`.
 
 ## Directory layout
 
@@ -14,6 +15,11 @@ AI-native lending infrastructure for India's B2B economy. Pre-integrated with GE
 - `_assets/` — scraped Framer assets (fonts, images, icons). Don't edit.
 - `assets/leafloans.css` — all visual overrides, custom footer, modal styling, scroll-reveal CSS, banner heading override, dropdown component.
 - `assets/leafloans.js` — nav behavior, smooth-scroll nav links, modal build/open/submit, scroll-reveal staggered cascade, progress-line animation, banner heading enforcement, custom dropdown.
+- `assets/config.js` — runtime config (`window.LL_SHEET_WEBHOOK` for the Apps Script lead webhook). Loaded before `leafloans.js`.
+- `assets/img/og-image.png` — 1200×630 social preview, regenerated with `python3 scripts/build-og-image.py`. Sources Manrope from `assets/fonts/`.
+- `assets/img/leafloans-wordmark.png` — original Framer wordmark; the L mark is cropped from this for `favicon.png` and the OG image.
+- `favicon.png` (512×512), `favicon-32.png`, `apple-touch-icon.png` — all root-level so they resolve at the apex on `www.leafloans.ai`.
+- `CNAME` — GitHub Pages custom-domain marker (`www.leafloans.ai`).
 - `apply.js` — one-shot injector; run after adding new HTML files.
 
 ## Local dev
