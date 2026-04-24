@@ -88,7 +88,7 @@
       '</div>' +
       '<div id="ll-modal-success">' +
         '<div class="check">\u2713</div>' +
-        '<h3 id="ll-modal-success-title">You\u2019re in.</h3>' +
+        '<h3 id="ll-modal-success-title">Thank you for reaching out.</h3>' +
         '<p id="ll-modal-success-copy">A member of our team will reach out within <strong>2 business days</strong>. Something urgent? Write to <a href="mailto:connect@leafloans.ai">connect@leafloans.ai</a>.</p>' +
         '<button id="ll-modal-close-2" class="ll-secondary">Back to site</button>' +
       '</div>' +
@@ -106,7 +106,7 @@
         if (success) success.classList.remove('show')
         if (formWrap) formWrap.style.display = ''
         const successTitle = document.getElementById('ll-modal-success-title')
-        if (successTitle) successTitle.textContent = 'You’re in.'
+        if (successTitle) successTitle.textContent = 'Thank you for reaching out.'
         const err = document.getElementById('ll-modal-error')
         if (err) err.textContent = ''
         // Reset the custom dropdown too (form.reset doesn't touch it)
@@ -251,7 +251,7 @@
         const firstName = (payload.name || '').split(/\s+/)[0]
         const successTitle = document.getElementById('ll-modal-success-title')
         if (successTitle && firstName) {
-          successTitle.textContent = 'You’re in, ' + firstName + '.'
+          successTitle.textContent = 'Thank you for reaching out, ' + firstName + '.'
         }
         document.getElementById('ll-modal-form-wrap').style.display = 'none'
         document.getElementById('ll-modal-success').classList.add('show')
