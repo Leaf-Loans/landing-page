@@ -417,7 +417,7 @@
      Replace the Framer logo with local Leaf Loans logo
      Swaps every nav-positioned logo image on the page.
   ───────────────────────────────────────── */
-  const LOGO_URL = 'assets/img/leafloans-logo.png'
+  const LOGO_URL = 'assets/img/leafloans-wordmark-black.png'
 
   function swapNavLogo() {
     document.querySelectorAll('nav').forEach(function (nav) {
@@ -437,7 +437,7 @@
       img.alt = 'Leaf Loans'
       img.setAttribute('data-ll-logo', 'true')
       img.style.cssText =
-        'height: 28px; width: auto; display: block; opacity: 1; visibility: visible;'
+        'width: 140px; height: auto; display: block; opacity: 1; visibility: visible;'
 
       // Remove previous logo children (svg/img/spans)
       while (logoWrapper.firstChild) logoWrapper.removeChild(logoWrapper.firstChild)
